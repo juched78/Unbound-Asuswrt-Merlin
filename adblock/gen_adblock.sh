@@ -68,8 +68,12 @@ download_file () {
 filter_file () {
   filter=$1
   original=$2
-  awk 'NR==FNR{a[$0];next} !($0 in a) {print $NF}' $filter $original | sort -u > ${original}.tmp
-  mv ${original}.tmp $original
+  if [ "$(wc -l < $filter)" -ne "0" ]; then
+    awk 'NR==FNR{a[$0];next} !($0 in a) {print $NF}' $filter $original | sort -u > ${original}.tmp
+    mv ${original}.tmp $original
+  else
+    echo "No Filtering Required..."
+  fi
 }
 
 cleanup () { 
