@@ -52,14 +52,16 @@ fi
 download_file () {
   sites=$1
   list=$2
+  count=1
   while read -r line
   do
   set -- $line
   for url in $(echo $line); do
-  echo "Attempting to Download $url"
+  echo "Attempting to Download $count of $(wc -l < $sites) from $url."
   curl --progress-bar $url | grep -v "#" | grep -v "::1" | grep -v "0.0.0.0 0.0.0.0" | sed '/^$/d' | sed 's/\ /\\ /g' | awk '{print $NF}' | grep -v '^\\' | grep -v '\\$'| sort >> $list
   dos2unix $list
   done
+  count=$((count + 1))
   done < "$sites"
 }
 
