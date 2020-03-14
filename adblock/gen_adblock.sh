@@ -58,7 +58,8 @@ download_file () {
   set -- $line
   for url in $(echo $line); do
   echo "Attempting to Download $count of $(wc -l < $sites) from $url."
-  curl --progress-bar $url | grep -v "#" | grep -v "::1" | grep -v "0.0.0.0 0.0.0.0" | sed '/^$/d' | sed 's/\ /\\ /g' | awk '{print $NF}' | grep -v '^\\' | grep -v '\\$'| sort >> $list
+  # legacy curl --progress-bar $url | grep -v "#" | grep -v "::1" | grep -v "0.0.0.0 0.0.0.0" | sed '/^$/d' | sed 's/\ /\\ /g' | awk '{print $NF}' | grep -v '^\\' | grep -v '\\$'| sort >> $list
+  curl --progress-bar $url | grep -o '^[^#]*' | grep -v "::1" | grep -v "0.0.0.0 0.0.0.0" | sed '/^$/d' | sed 's/\ /\\ /g' | awk '{print $NF}' | grep -o '^[^\\]*' | grep -o '^[^\\$]*' | sort >> $list
   dos2unix $list
   done
   count=$((count + 1))
@@ -72,7 +73,7 @@ filter_file () {
     awk 'NR==FNR{a[$0];next} !($0 in a) {print $NF}' $filter $original | sort -u > ${original}.tmp
     mv ${original}.tmp $original
   else
-    echo "No Filtering Required..."
+    echo "No filtering from $filter required for $original..."
   fi
 }
 
