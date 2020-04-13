@@ -26,7 +26,9 @@ download_reload () {
 }
 
 # ensure the cron job is running
-cru a Unbound_RPZ.sh "*/15 * * * * /jffs/addons/unbound/unbound_rpz.sh"
+if [ "$(cru l | grep -c "$Unbound_RPZ.sh")" -eq 0 ]; then
+  cru a Unbound_RPZ.sh "*/15 * * * * /jffs/addons/unbound/unbound_rpz.sh"
+fi
 
 # read and download from rpzsites
 download_reload "/opt/share/unbound/configs/rpzsites"
