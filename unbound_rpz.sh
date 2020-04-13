@@ -26,7 +26,7 @@ download_reload () {
 }
 
 # ensure the cron job is running
-if [ "$(cru l | grep -c "$Unbound_RPZ.sh")" -eq 0 ]; then
+if [ "$(cru l | grep -c "Unbound_RPZ.sh")" -eq 0 ]; then
   cru a Unbound_RPZ.sh "*/15 * * * * /jffs/addons/unbound/unbound_rpz.sh"
 fi
 
