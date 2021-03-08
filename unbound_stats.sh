@@ -19,7 +19,8 @@
 ## v1.2.4 - April 12 2020 - Removed error message on clean install for missing md5 file
 ## v1.2.5 - April 13 2020 - During install, do not Generate stats if unbound is not running
 ## v1.3.0 - April 16 2020 - Show stats for DNS Firewall
-readonly SCRIPT_VERSION="v1.3.0"
+## v1.4.0 - March 7 2021 - Introduce locking standard around mounting and unmouning, increase max pages to 20
+readonly SCRIPT_VERSION="v1.4.0"
 
 #define www script names
 readonly SCRIPT_WEBPAGE_DIR="$(readlink /www/user)"
@@ -326,14 +327,14 @@ Generate_UnboundStats () {
 	#generate data for top blocked domains
 	echo "Outputting top blocked domains..."
 	[ -f $statsTopBlockedFileJS ] && rm -f $statsTopBlockedFileJS
-	WriteUnboundSqlLog_ToFile "nx_domains" "domain" "count" "10" "/tmp/unbound-tbd.csv" "/tmp/unbound-tbd.sql"
+	WriteUnboundSqlLog_ToFile "nx_domains" "domain" "count" "15" "/tmp/unbound-tbd.csv" "/tmp/unbound-tbd.sql"
 	"$SQLITE3_PATH" "$dbLogs" < /tmp/unbound-tbd.sql
 	WriteUnboundCSV_ToJS "/tmp/unbound-tbd.csv" "$statsTopBlockedFileJS" "barLabelsTopBlocked" "barDataTopBlocked"
 
 	#generate data for top 10 weekly replies from unbound
 	echo "Outputting top replies ..."
 	[ -f $statsTopRepliesFileJS ] && rm -f $statsTopRepliesFileJS
-	WriteUnboundSqlLog_ToFile "reply_domains" "domain, reply" "count" "10" "/tmp/unbound-topreplies.csv" "/tmp/unbound-topreplies.sql"
+	WriteUnboundSqlLog_ToFile "reply_domains" "domain, reply" "count" "15" "/tmp/unbound-topreplies.csv" "/tmp/unbound-topreplies.sql"
 	"$SQLITE3_PATH" "$dbLogs" < /tmp/unbound-topreplies.sql
 	WriteUnboundCSV_ToJS_2Labels "/tmp/unbound-topreplies.csv" "$statsTopRepliesFileJS" "barLabelsTopReplies" "barDataTopReplies"
 
@@ -488,7 +489,7 @@ Get_WebUI_Installed () {
 }
 
 Get_WebUI_Page () {
-	for i in 1 2 3 4 5 6 7 8 9 10; do
+	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
 		page="$SCRIPT_WEBPAGE_DIR/user$i.asp"
 		if [ ! -f "$page" ] || [ "$(md5sum < "$1")" = "$(md5sum < "$page")" ] || [ "$2" = "$(md5sum < "$page")" ]; then
 			MyPage="user$i.asp"
@@ -500,10 +501,18 @@ Get_WebUI_Page () {
 
 Mount_WebUI(){
 	if nvram get rc_support | grep -qF "am_addons"; then
+	
+		### locking mechanism code credit to Martineau (@MartineauUK) ###
+		LOCKFILE=/tmp/addonwebui.lock
+		FD=386
+		eval exec "$FD>$LOCKFILE"
+		flock -x "$FD"
+		
 		Get_WebUI_Installed
 		Get_WebUI_Page "$SCRIPT_DIR/unboundstats_www.asp" "$md5_installed"
 		if [ "$MyPage" = "none" ]; then
 			echo "Unable to mount $SCRIPT_NAME WebUI page, exiting"
+			flock -u "$FD"		
 			exit 1
 		fi
 		echo "Mounting $SCRIPT_NAME WebUI page as $MyPage"
@@ -540,10 +549,18 @@ Mount_WebUI(){
 		
 		umount /www/require/modules/menuTree.js 2>/dev/null
 		mount -o bind /tmp/menuTree.js /www/require/modules/menuTree.js
+		
+		flock -u "$FD"
 	fi
 }
 
 Unmount_WebUI(){
+	### locking mechanism code credit to Martineau (@MartineauUK) ###
+	LOCKFILE=/tmp/addonwebui.lock
+	FD=386
+	eval exec "$FD>$LOCKFILE"
+	flock -x "$FD"
+	
 	Get_WebUI_Installed
 	Get_WebUI_Page "$SCRIPT_DIR/unboundstats_www.asp" "$md5_installed" 
 	echo "$MyPage"
@@ -554,6 +571,8 @@ Unmount_WebUI(){
 		rm -rf "$SCRIPT_WEBPAGE_DIR/$MyPage"
 		rm -rf "$SCRIPT_WEB_DIR"
 	fi
+	
+	flock -u "$FD"
 }
 
 # $1 show commands
