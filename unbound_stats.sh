@@ -20,7 +20,8 @@
 ## v1.2.5 - April 13 2020 - During install, do not Generate stats if unbound is not running
 ## v1.3.0 - April 16 2020 - Show stats for DNS Firewall
 ## v1.4.0 - March 7 2021 - Introduce locking standard around mounting and unmouning, increase max pages to 20
-readonly SCRIPT_VERSION="v1.4.0"
+## v1.4.1 - April 6 2021 - Fix statup timeout killing init, (missing tabs, double data, etc).
+readonly SCRIPT_VERSION="v1.4.1"
 
 #define www script names
 readonly SCRIPT_WEBPAGE_DIR="$(readlink /www/user)"
@@ -380,15 +381,15 @@ Auto_Startup(){
 	case $1 in
 		create)
 			if [ -f /jffs/scripts/post-mount ]; then
-				STARTUPLINECOUNTEX=$(grep -cx "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' # '"$SCRIPT_NAME" /jffs/scripts/post-mount)
+				STARTUPLINECOUNTEX=$(grep -cx "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' "$@" & # '"$SCRIPT_NAME" /jffs/scripts/post-mount)
 				
 				if [ "$STARTUPLINECOUNTEX" -eq 0 ]; then
-					echo "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' # '"$SCRIPT_NAME" >> /jffs/scripts/post-mount
+					echo "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' "$@" & # '"$SCRIPT_NAME" >> /jffs/scripts/post-mount
 				fi
 			else
 				echo "#!/bin/sh" > /jffs/scripts/post-mount
 				echo "" >> /jffs/scripts/post-mount
-				echo "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' # '"$SCRIPT_NAME" >> /jffs/scripts/post-mount
+				echo "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' "$@" & # '"$SCRIPT_NAME" >> /jffs/scripts/post-mount
 				chmod 0755 /jffs/scripts/post-mount
 			fi
 		;;
@@ -639,7 +640,7 @@ Install_Dependancies(){
 
 Wait_For_Unbound() {
 	echo "Checking if Unbound is running to generate stats..."
-        WAIT=15    #give 15 seconds or so for unbound to start 
+        WAIT=10    #give 150 seconds or so for unbound to start 
         I=0
          while [ $I -lt $((WAIT)) ]
             do
@@ -647,7 +648,7 @@ Wait_For_Unbound() {
 			break;
 		fi
 		echo "Unbound not running yet, try again $I..."
-                sleep 1
+                sleep 15
                 I=$((I + 1))
             done  
 }
@@ -662,6 +663,9 @@ ScriptHeader
 case "$1" in
 	install)
 		Install_Dependancies
+		Auto_Startup delete
+		Auto_ServiceEvent delete
+		Auto_Cron delete
 		Auto_Startup create
 		Auto_ServiceEvent create
 		Auto_Cron create
@@ -672,11 +676,15 @@ case "$1" in
 		exit 0
 	;;
 	startup)
-		Auto_Cron create
-		Mount_WebUI
-		Create_Dirs
-		Wait_For_Unbound
-		Generate_UnboundStats
+		# only start on entware mount	
+		if [ -f "$2/entware/bin/opkg" ]; then
+			echo "Found entware mount... startup now..."
+			Auto_Cron create
+			Mount_WebUI
+			Create_Dirs
+			Wait_For_Unbound
+			Generate_UnboundStats
+		fi
 		exit 0
 	;;
 	generate)
