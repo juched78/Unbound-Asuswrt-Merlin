@@ -8,13 +8,14 @@
 # |   \| \| / __|  | |_  (_)((_|_)) _(()((_|(_)_| || |  
 # | |) | .` \__ \  | __| | | '_/ -_)\ V  V / _` | || |  
 # |___/|_|\_|___/  |_|   |_|_| \___| \_/\_/\__,_|_||_|  
-## by @juched - DNS Firewall in Unbound (needs unbound 1.10.0+)
+## by @juched - DNS Firewall in Unbound (needs unbound 1.10+)
 ## Unbound-RPZ.sh
 ## v1.0 - Initial quick release.  Run it once, it keeps running.  No installer.
 ## v1.0.1 - Only reload if unbound is running
 ## v1.1.0 - Updated with proper commands to install/uninstall and update.  Now survives reboot of router
 ## v1.2.0 - Support unbound.conf.firewall generation during install, and clean up during uninstall (needs v3.03 of unbound_manager)
-readonly SCRIPT_VERSION="v1.2.0"
+## v1.2.1 - Patch to remove CNAME entires which end in a dot - breakes load of RPZ file
+readonly SCRIPT_VERSION="v1.2.1"
 
 #define needed vars
 readonly rpzSitesFile="/opt/share/unbound/configs/rpzsites"
@@ -42,7 +43,7 @@ ScriptHeader() {
 	printf "# | |) | .\` \__ \  | __| | | '_/ -_)\ V  V / _\` | || |  \\n"
 	printf "# |___/|_|\_|___/  |_|   |_|_| \___| \_/\_/\__,_|_||_|  \\n"
 
-	printf "## by @juched - DNS Firewall in Unbound (needs unbound 1.10.0+) - %s\\n" "$SCRIPT_VERSION"
+	printf "## by @juched - DNS Firewall in Unbound (needs unbound 1.10+) - %s\\n" "$SCRIPT_VERSION"
 	printf "\\n"
 	printf "unbound_rpz.sh\\n"
 	printf "		install   - Starts the automatic download of data files\\n"
@@ -80,6 +81,7 @@ download_reload() {
       Say "Attempting to Download $count of $(awk 'NF && !/^[:space:]*#/' $sitesfile | wc -l) from $1."
       curl --progress-bar $1 > $2
       dos2unix $2
+      sed -i '/\. CNAME \./d' $2
     fi
 
     if [ "$cmd" == "install" ]; then

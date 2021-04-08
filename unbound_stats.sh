@@ -19,7 +19,11 @@
 ## v1.2.4 - April 12 2020 - Removed error message on clean install for missing md5 file
 ## v1.2.5 - April 13 2020 - During install, do not Generate stats if unbound is not running
 ## v1.3.0 - April 16 2020 - Show stats for DNS Firewall
-readonly SCRIPT_VERSION="v1.3.0"
+
+## v1.4.0 - March 7 2021 - Introduce locking standard around mounting and unmouning, increase max pages to 20
+## v1.4.1 - April 6 2021 - Fix statup timeout killing init, (missing tabs, double data, etc).
+readonly SCRIPT_VERSION="v1.4.1"
+
 
 #define www script names
 readonly SCRIPT_WEBPAGE_DIR="$(readlink /www/user)"
@@ -326,14 +330,18 @@ Generate_UnboundStats () {
 	#generate data for top blocked domains
 	echo "Outputting top blocked domains..."
 	[ -f $statsTopBlockedFileJS ] && rm -f $statsTopBlockedFileJS
-	WriteUnboundSqlLog_ToFile "nx_domains" "domain" "count" "10" "/tmp/unbound-tbd.csv" "/tmp/unbound-tbd.sql"
+
+	WriteUnboundSqlLog_ToFile "nx_domains" "domain" "count" "15" "/tmp/unbound-tbd.csv" "/tmp/unbound-tbd.sql"
+
 	"$SQLITE3_PATH" "$dbLogs" < /tmp/unbound-tbd.sql
 	WriteUnboundCSV_ToJS "/tmp/unbound-tbd.csv" "$statsTopBlockedFileJS" "barLabelsTopBlocked" "barDataTopBlocked"
 
 	#generate data for top 10 weekly replies from unbound
 	echo "Outputting top replies ..."
 	[ -f $statsTopRepliesFileJS ] && rm -f $statsTopRepliesFileJS
-	WriteUnboundSqlLog_ToFile "reply_domains" "domain, reply" "count" "10" "/tmp/unbound-topreplies.csv" "/tmp/unbound-topreplies.sql"
+
+	WriteUnboundSqlLog_ToFile "reply_domains" "domain, reply" "count" "15" "/tmp/unbound-topreplies.csv" "/tmp/unbound-topreplies.sql"
+
 	"$SQLITE3_PATH" "$dbLogs" < /tmp/unbound-topreplies.sql
 	WriteUnboundCSV_ToJS_2Labels "/tmp/unbound-topreplies.csv" "$statsTopRepliesFileJS" "barLabelsTopReplies" "barDataTopReplies"
 
@@ -379,15 +387,17 @@ Auto_Startup(){
 	case $1 in
 		create)
 			if [ -f /jffs/scripts/post-mount ]; then
-				STARTUPLINECOUNTEX=$(grep -cx "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' # '"$SCRIPT_NAME" /jffs/scripts/post-mount)
+				STARTUPLINECOUNTEX=$(grep -cx "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' "$@" & # '"$SCRIPT_NAME" /jffs/scripts/post-mount)
 				
 				if [ "$STARTUPLINECOUNTEX" -eq 0 ]; then
-					echo "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' # '"$SCRIPT_NAME" >> /jffs/scripts/post-mount
+					echo "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' "$@" & # '"$SCRIPT_NAME" >> /jffs/scripts/post-mount
 				fi
 			else
 				echo "#!/bin/sh" > /jffs/scripts/post-mount
 				echo "" >> /jffs/scripts/post-mount
-				echo "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' # '"$SCRIPT_NAME" >> /jffs/scripts/post-mount
+
+				echo "$SCRIPT_DIR/$SCRIPT_NAME_LOWER startup"' "$@" & # '"$SCRIPT_NAME" >> /jffs/scripts/post-mount
+
 				chmod 0755 /jffs/scripts/post-mount
 			fi
 		;;
@@ -488,7 +498,7 @@ Get_WebUI_Installed () {
 }
 
 Get_WebUI_Page () {
-	for i in 1 2 3 4 5 6 7 8 9 10; do
+	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
 		page="$SCRIPT_WEBPAGE_DIR/user$i.asp"
 		if [ ! -f "$page" ] || [ "$(md5sum < "$1")" = "$(md5sum < "$page")" ] || [ "$2" = "$(md5sum < "$page")" ]; then
 			MyPage="user$i.asp"
@@ -500,10 +510,19 @@ Get_WebUI_Page () {
 
 Mount_WebUI(){
 	if nvram get rc_support | grep -qF "am_addons"; then
+	
+		### locking mechanism code credit to Martineau (@MartineauUK) ###
+		LOCKFILE=/tmp/addonwebui.lock
+		FD=386
+		eval exec "$FD>$LOCKFILE"
+		flock -x "$FD"
+		
+
 		Get_WebUI_Installed
 		Get_WebUI_Page "$SCRIPT_DIR/unboundstats_www.asp" "$md5_installed"
 		if [ "$MyPage" = "none" ]; then
 			echo "Unable to mount $SCRIPT_NAME WebUI page, exiting"
+			flock -u "$FD"		
 			exit 1
 		fi
 		echo "Mounting $SCRIPT_NAME WebUI page as $MyPage"
@@ -533,17 +552,29 @@ Mount_WebUI(){
 			sed -i "$lineinsbefore"'i,\n{\nmenuName: "Addons",\nindex: "menu_Addons",\ntab: [\n{url: "ext/shared-jy/redirect.htm", tabName: "Help & Support"},\n{url: "NULL", tabName: "__INHERIT__"}\n]\n}' /tmp/menuTree.js
 		fi
 		
-		if ! grep -q "javascript:window.open('/ext/shared-jy/redirect.htm'" /tmp/menuTree.js ; then
-			sed -i "s~ext/shared-jy/redirect.htm~javascript:window.open('/ext/shared-jy/redirect.htm','_blank')~" /tmp/menuTree.js
+		if grep -q "javascript:window.open('/ext/shared-jy/redirect.htm'" /tmp/menuTree.js ; then
+			sed -i "s~javascript:window.open('/ext/shared-jy/redirect.htm','_blank')~javascript:var helpwindow=window.open('/ext/shared-jy/redirect.htm','_blank')~" /tmp/menuTree.js
 		fi
-		sed -i "/url: \"javascript:window.open('\/ext\/shared-jy\/redirect.htm'/i {url: \"$MyPage\", tabName: \"Unbound\"}," /tmp/menuTree.js
+		if ! grep -q "javascript:var helpwindow=window.open('/ext/shared-jy/redirect.htm'" /tmp/menuTree.js ; then
+			sed -i "s~ext/shared-jy/redirect.htm~javascript:var helpwindow=window.open('/ext/shared-jy/redirect.htm','_blank')~" /tmp/menuTree.js
+		fi
+		sed -i "/url: \"javascript:var helpwindow=window.open('\/ext\/shared-jy\/redirect.htm'/i {url: \"$MyPage\", tabName: \"Unbound\"}," /tmp/menuTree.js
 		
 		umount /www/require/modules/menuTree.js 2>/dev/null
 		mount -o bind /tmp/menuTree.js /www/require/modules/menuTree.js
+		
+		flock -u "$FD"
 	fi
 }
 
 Unmount_WebUI(){
+
+	### locking mechanism code credit to Martineau (@MartineauUK) ###
+	LOCKFILE=/tmp/addonwebui.lock
+	FD=386
+	eval exec "$FD>$LOCKFILE"
+	flock -x "$FD"
+
 	Get_WebUI_Installed
 	Get_WebUI_Page "$SCRIPT_DIR/unboundstats_www.asp" "$md5_installed" 
 	echo "$MyPage"
@@ -554,6 +585,8 @@ Unmount_WebUI(){
 		rm -rf "$SCRIPT_WEBPAGE_DIR/$MyPage"
 		rm -rf "$SCRIPT_WEB_DIR"
 	fi
+	
+	flock -u "$FD"
 }
 
 # $1 show commands
@@ -620,7 +653,7 @@ Install_Dependancies(){
 
 Wait_For_Unbound() {
 	echo "Checking if Unbound is running to generate stats..."
-        WAIT=15    #give 15 seconds or so for unbound to start 
+        WAIT=10    #give 150 seconds or so for unbound to start 
         I=0
          while [ $I -lt $((WAIT)) ]
             do
@@ -628,7 +661,7 @@ Wait_For_Unbound() {
 			break;
 		fi
 		echo "Unbound not running yet, try again $I..."
-                sleep 1
+                sleep 15
                 I=$((I + 1))
             done  
 }
@@ -643,6 +676,9 @@ ScriptHeader
 case "$1" in
 	install)
 		Install_Dependancies
+		Auto_Startup delete
+		Auto_ServiceEvent delete
+		Auto_Cron delete
 		Auto_Startup create
 		Auto_ServiceEvent create
 		Auto_Cron create
@@ -653,11 +689,15 @@ case "$1" in
 		exit 0
 	;;
 	startup)
-		Auto_Cron create
-		Mount_WebUI
-		Create_Dirs
-		Wait_For_Unbound
-		Generate_UnboundStats
+		# only start on entware mount	
+		if [ -f "$2/entware/bin/opkg" ]; then
+			echo "Found entware mount... startup now..."
+			Auto_Cron create
+			Mount_WebUI
+			Create_Dirs
+			Wait_For_Unbound
+			Generate_UnboundStats
+		fi
 		exit 0
 	;;
 	generate)
