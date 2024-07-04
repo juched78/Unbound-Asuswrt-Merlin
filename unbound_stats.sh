@@ -19,11 +19,10 @@
 ## v1.2.4 - April 12 2020 - Removed error message on clean install for missing md5 file
 ## v1.2.5 - April 13 2020 - During install, do not Generate stats if unbound is not running
 ## v1.3.0 - April 16 2020 - Show stats for DNS Firewall
-
 ## v1.4.0 - March 7 2021 - Introduce locking standard around mounting and unmouning, increase max pages to 20
 ## v1.4.1 - April 6 2021 - Fix statup timeout killing init, (missing tabs, double data, etc).
-readonly SCRIPT_VERSION="v1.4.1"
-
+## v1.4.2 - July 04 2024 - Fixed error when loading WebGUI page on 3006.102.1 F/W version [Martinski W.]
+readonly SCRIPT_VERSION="v1.4.2"
 
 #define www script names
 readonly SCRIPT_WEBPAGE_DIR="$(readlink /www/user)"
@@ -32,7 +31,6 @@ readonly LOGSCRIPT_NAME="Unbound_Log.sh"
 readonly SCRIPT_NAME_LOWER="unbound_stats.sh"
 readonly LOGSCRIPT_NAME_LOWER="unbound_log.sh"
 readonly SCRIPT_WEB_DIR="$SCRIPT_WEBPAGE_DIR/$SCRIPT_NAME_LOWER"
-
 readonly SCRIPT_DIR="/jffs/addons/unbound"
 
 #needed for shared jy graph files from @JackYaz
@@ -330,7 +328,6 @@ Generate_UnboundStats () {
 	#generate data for top blocked domains
 	echo "Outputting top blocked domains..."
 	[ -f $statsTopBlockedFileJS ] && rm -f $statsTopBlockedFileJS
-
 	WriteUnboundSqlLog_ToFile "nx_domains" "domain" "count" "15" "/tmp/unbound-tbd.csv" "/tmp/unbound-tbd.sql"
 
 	"$SQLITE3_PATH" "$dbLogs" < /tmp/unbound-tbd.sql
@@ -516,7 +513,6 @@ Mount_WebUI(){
 		FD=386
 		eval exec "$FD>$LOCKFILE"
 		flock -x "$FD"
-		
 
 		Get_WebUI_Installed
 		Get_WebUI_Page "$SCRIPT_DIR/unboundstats_www.asp" "$md5_installed"
