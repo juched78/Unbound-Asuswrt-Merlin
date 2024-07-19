@@ -124,6 +124,7 @@ download_file $blocksites $tempoutlist
 [ -f $tempoutlist ] && echo "Removing unnecessary formatting from the domain list..." && cleanup $tempoutlist $outlist $finalist
 
 echo "Generating Unbound adservers file..."
+sed -i '/\.\.\./d' $finalist
 awk '{print "local-zone: \""$1"\" always_nxdomain"}' $finalist > $adlist
 numberOfHostsBlocked=$(wc -l < $adlist)
 Say "Number of adblocked hosts: $numberOfHostsBlocked"
