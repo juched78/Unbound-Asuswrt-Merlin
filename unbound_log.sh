@@ -14,7 +14,8 @@
 ## - v1.3 - April 15 2020 - Support tracking an output of blocked sites via DNS Firewall, clean up to speed up
 ## - v1.4 - April 21 2020 - Support non syslog logs (/opt/var/lib/unbound/..)
 ## - v1.5 - April 24 2020 - Add support for log_reopen to fix bug for non-syslog users
-readonly SCRIPT_VERSION="v1.5"
+## - v1.6 - June 08 2025 - Fix error caused by GNU‑only option (date -D) [ExtremeFiretop]
+readonly SCRIPT_VERSION="v1.6"
 
 Say(){
    echo -e $$ $@ | logger -st "($(basename $0))"
