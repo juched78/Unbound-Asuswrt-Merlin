@@ -22,7 +22,8 @@
 ## v1.4.0 - March 7 2021 - Introduce locking standard around mounting and unmouning, increase max pages to 20
 ## v1.4.1 - April 6 2021 - Fix statup timeout killing init, (missing tabs, double data, etc).
 ## v1.4.2 - July 04 2024 - Fixed error when loading WebGUI page on 3006.102.1 F/W version [Martinski W.]
-readonly SCRIPT_VERSION="v1.4.2"
+## v1.4.3 - June 08 2025 - Fixed error not linking the required shared-jy directory if only Unbound is installed: https://www.snbforums.com/threads/no-gui-stats.94849/post-958182 [ExtremeFiretop]
+readonly SCRIPT_VERSION="v1.4.3"
 
 #define www script names
 readonly SCRIPT_WEBPAGE_DIR="$(readlink /www/user)"
@@ -233,6 +234,11 @@ WriteSql_ToFile(){
 }
 
 Generate_UnboundStats () {
+	#Symlink the shared jy folder if it doesn't exist
+	if [ ! -d "$SHARED_WEB_DIR" ]; then
+		ln -s "$SHARED_DIR" "$SHARED_WEB_DIR" 2>/dev/null
+	fi
+
 	#generate stats to raw file
 	if [ -n "$(pidof unbound)" ]; then 
 		printf "$($UNBOUNCTRLCMD stats_noreset)" > $raw_statsFile
