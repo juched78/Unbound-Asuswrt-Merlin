@@ -65,9 +65,9 @@ tmpSQL="/tmp/unbound_log.sql"
 dbLogFile="/opt/var/lib/unbound/unbound_log.db"
 dateString=$(date '+%F')
 #dateString="2020-03-22"
-olddateString7=$(date -D %s -d $(( $(date +%s) - 7*86400)) '+%F')
+olddateString7=$(date -d "@$(( now - 7*86400  ))" '+%F')
 echo "Date used is $dateString (7 days ago is $olddateString7)"
-olddateString30=$(date -D %s -d $(( $(date +%s) - 30*86400)) '+%F')
+olddateString30=$(date -d "@$(( now - 30*86400 ))" '+%F')
 echo "Date used is $dateString (30 days ago is $olddateString30)"
 
 #create table to track adblocked domains from log-local-actions if needed
