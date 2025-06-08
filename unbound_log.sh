@@ -66,6 +66,7 @@ tmpSQL="/tmp/unbound_log.sql"
 dbLogFile="/opt/var/lib/unbound/unbound_log.db"
 dateString=$(date '+%F')
 #dateString="2020-03-22"
+now=$(date +%s)
 olddateString7=$(date -d "@$(( now - 7*86400  ))" '+%F')
 echo "Date used is $dateString (7 days ago is $olddateString7)"
 olddateString30=$(date -d "@$(( now - 30*86400 ))" '+%F')
