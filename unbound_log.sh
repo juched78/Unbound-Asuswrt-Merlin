@@ -14,7 +14,8 @@
 ## - v1.3 - April 15 2020 - Support tracking an output of blocked sites via DNS Firewall, clean up to speed up
 ## - v1.4 - April 21 2020 - Support non syslog logs (/opt/var/lib/unbound/..)
 ## - v1.5 - April 24 2020 - Add support for log_reopen to fix bug for non-syslog users
-readonly SCRIPT_VERSION="v1.5"
+## - v1.6 - June 08 2025 - Fix error caused by GNU‑only option (date -D) [ExtremeFiretop]
+readonly SCRIPT_VERSION="v1.6"
 
 Say(){
    echo -e $$ $@ | logger -st "($(basename $0))"
@@ -65,9 +66,10 @@ tmpSQL="/tmp/unbound_log.sql"
 dbLogFile="/opt/var/lib/unbound/unbound_log.db"
 dateString=$(date '+%F')
 #dateString="2020-03-22"
-olddateString7=$(date -D %s -d $(( $(date +%s) - 7*86400)) '+%F')
+now=$(date +%s)
+olddateString7=$(date -d "@$(( now - 7*86400  ))" '+%F')
 echo "Date used is $dateString (7 days ago is $olddateString7)"
-olddateString30=$(date -D %s -d $(( $(date +%s) - 30*86400)) '+%F')
+olddateString30=$(date -d "@$(( now - 30*86400 ))" '+%F')
 echo "Date used is $dateString (30 days ago is $olddateString30)"
 
 #create table to track adblocked domains from log-local-actions if needed

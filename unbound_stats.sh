@@ -21,7 +21,10 @@
 ## v1.3.0 - April 16 2020 - Show stats for DNS Firewall
 ## v1.4.0 - March 7 2021 - Introduce locking standard around mounting and unmouning, increase max pages to 20
 ## v1.4.1 - April 6 2021 - Fix statup timeout killing init, (missing tabs, double data, etc).
-readonly SCRIPT_VERSION="v1.4.1"
+## v1.4.2 - July 04 2024 - Fixed error when loading WebGUI page on 3006.102.1 F/W version [Martinski W.]
+## v1.4.3 - June 08 2025 - Fixed error not linking the required shared-jy directory if only Unbound is installed: https://www.snbforums.com/threads/no-gui-stats.94849/post-958182 [ExtremeFiretop]
+## v1.4.3 - June 08 2025 - Updated URLs to use new AMTM-OSR path
+readonly SCRIPT_VERSION="v1.4.3"
 
 #define www script names
 readonly SCRIPT_WEBPAGE_DIR="$(readlink /www/user)"
@@ -34,7 +37,7 @@ readonly SCRIPT_DIR="/jffs/addons/unbound"
 
 #needed for shared jy graph files from @JackYaz
 readonly SHARED_DIR="/jffs/addons/shared-jy"
-readonly SHARED_REPO="https://raw.githubusercontent.com/jackyaz/shared-jy/master"
+readonly SHARED_REPO="https://raw.githubusercontent.com/AMTM-OSR/shared-jy/master"
 readonly SHARED_WEB_DIR="$SCRIPT_WEBPAGE_DIR/shared-jy"
 
 #define needed commands
@@ -511,7 +514,7 @@ Mount_WebUI(){
 		FD=386
 		eval exec "$FD>$LOCKFILE"
 		flock -x "$FD"
-		
+
 		Get_WebUI_Installed
 		Get_WebUI_Page "$SCRIPT_DIR/unboundstats_www.asp" "$md5_installed"
 		if [ "$MyPage" = "none" ]; then
@@ -695,6 +698,7 @@ case "$1" in
 		exit 0
 	;;
 	generate)
+ 		Install_Dependancies
 		if [ -z "$2" ] && [ -z "$3" ]; then
 			Wait_For_Unbound
 			Generate_UnboundStats
