@@ -334,7 +334,6 @@ Generate_UnboundStats () {
 
 	"$SQLITE3_PATH" "$dbLogs" < /tmp/unbound-tbd.sql
 	WriteUnboundCSV_ToJS "/tmp/unbound-tbd.csv" "$statsTopBlockedFileJS" "barLabelsTopBlocked" "barDataTopBlocked"
-
 	#generate data for top 10 weekly replies from unbound
 	echo "Outputting top replies ..."
 	[ -f $statsTopRepliesFileJS ] && rm -f $statsTopRepliesFileJS
