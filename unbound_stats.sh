@@ -686,9 +686,10 @@ case "$1" in
 		exit 0
 	;;
 	startup)
-		# only start on entware mount	
+		# only start on entware mount
 		if [ -f "$2/entware/bin/opkg" ]; then
 			echo "Found entware mount... startup now..."
+			Install_Dependancies
 			Auto_Cron create
 			Mount_WebUI
 			Create_Dirs
@@ -698,7 +699,6 @@ case "$1" in
 		exit 0
 	;;
 	generate)
- 		Install_Dependancies
 		if [ -z "$2" ] && [ -z "$3" ]; then
 			Wait_For_Unbound
 			Generate_UnboundStats
