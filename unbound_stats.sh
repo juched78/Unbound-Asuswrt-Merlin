@@ -23,6 +23,7 @@
 ## v1.4.1 - April 6 2021 - Fix statup timeout killing init, (missing tabs, double data, etc).
 ## v1.4.2 - July 04 2024 - Fixed error when loading WebGUI page on 3006.102.1 F/W version [Martinski W.]
 ## v1.4.3 - June 08 2025 - Fixed error not linking the required shared-jy directory if only Unbound is installed: https://www.snbforums.com/threads/no-gui-stats.94849/post-958182 [ExtremeFiretop]
+## v1.4.3 - June 08 2025 - Updated URLs to use new AMTM-OSR path
 readonly SCRIPT_VERSION="v1.4.3"
 
 #define www script names
@@ -36,7 +37,7 @@ readonly SCRIPT_DIR="/jffs/addons/unbound"
 
 #needed for shared jy graph files from @JackYaz
 readonly SHARED_DIR="/jffs/addons/shared-jy"
-readonly SHARED_REPO="https://raw.githubusercontent.com/jackyaz/shared-jy/master"
+readonly SHARED_REPO="https://raw.githubusercontent.com/AMTM-OSR/shared-jy/master"
 readonly SHARED_WEB_DIR="$SCRIPT_WEBPAGE_DIR/shared-jy"
 
 #define needed commands
@@ -234,11 +235,6 @@ WriteSql_ToFile(){
 }
 
 Generate_UnboundStats () {
-	#Symlink the shared jy folder if it doesn't exist
-	if [ ! -d "$SHARED_WEB_DIR" ]; then
-		ln -s "$SHARED_DIR" "$SHARED_WEB_DIR" 2>/dev/null
-	fi
-
 	#generate stats to raw file
 	if [ -n "$(pidof unbound)" ]; then 
 		printf "$($UNBOUNCTRLCMD stats_noreset)" > $raw_statsFile
@@ -703,6 +699,7 @@ case "$1" in
 		exit 0
 	;;
 	generate)
+ 		Install_Dependancies
 		if [ -z "$2" ] && [ -z "$3" ]; then
 			Wait_For_Unbound
 			Generate_UnboundStats
