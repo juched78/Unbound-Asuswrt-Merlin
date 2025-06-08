@@ -23,8 +23,12 @@
 ## v1.4.0 - March 7 2021 - Introduce locking standard around mounting and unmouning, increase max pages to 20
 ## v1.4.1 - April 6 2021 - Fix startup timeout killing init, (missing tabs, double data, etc).
 ## v1.4.2 - July 04 2024 - Fixed errors when loading WebGUI page on 3006.102.1 F/W version [Martinski W.]
-##          June 08 2025 - Fixed bug to make sure symbolic link to shared directory for JY chart/graph 
-##                         files is created every time at startup during a reboot [Martinski W.]
+##          June 08 2025 - Fixed errors not linking the required shared-jy directory if only Unbound is installed [ExtremeFiretop]
+##          June 08 2025 - Updated URL for shared JackYaz chart/graph files to use new AMTM-OSR path [ExtremeFiretop]
+##          June 08 2025 - Improved fix to make sure symbolic link to shared directory for JackYaz chart/graph files
+##                         gets created under all conditions: installation, startups and reboots [Martinski W.]
+##          June 08 2025 - Added "export PATH" statement to give the built-in binaries higher priority than 
+##                         their equivalent Entware binaries [Martinski W.]
 #########################################################################################################
 # Last Modified: 2025-Jun-08
 #----------------------------------------
@@ -41,11 +45,14 @@ readonly SCRIPT_DIR="/jffs/addons/unbound"
 
 #needed for shared jy graph files from @JackYaz
 readonly SHARED_DIR="/jffs/addons/shared-jy"
-readonly SHARED_REPO="https://raw.githubusercontent.com/jackyaz/shared-jy/master"
+readonly SHARED_REPO="https://raw.githubusercontent.com/AMTM-OSR/shared-jy/master"
 readonly SHARED_WEB_DIR="$SCRIPT_WEBPAGE_DIR/shared-jy"
 
 #define needed commands
 readonly UNBOUNCTRLCMD="unbound-control"
+
+# Give priority to built-in binaries #
+export PATH="/bin:/usr/bin:/sbin:/usr/sbin:$PATH"
 
 #define data file names
 raw_statsFile="/tmp/unbound_raw_stats.txt"
