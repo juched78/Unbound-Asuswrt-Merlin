@@ -43,6 +43,9 @@ readonly SHARED_WEB_DIR="$SCRIPT_WEBPAGE_DIR/shared-jy"
 #define needed commands
 readonly UNBOUNCTRLCMD="unbound-control"
 
+# Give priority to built-in binaries #
+export PATH="/bin:/usr/bin:/sbin:/usr/sbin:$PATH"
+
 #define data file names
 raw_statsFile="/tmp/unbound_raw_stats.txt"
 statsFile="$SCRIPT_WEB_DIR/unboundstats.txt"
