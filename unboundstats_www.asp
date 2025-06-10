@@ -65,6 +65,7 @@ th.keystatsnumber {
 
 </style>
 <script language="JavaScript" type="text/javascript" src="/js/jquery.js"></script>
+<script language="JavaScript" type="text/javascript" src="/js/httpApi.js"></script>
 <script language="JavaScript" type="text/javascript" src="/ext/shared-jy/moment.js"></script>
 <script language="JavaScript" type="text/javascript" src="/ext/shared-jy/chart.js"></script>
 <script language="JavaScript" type="text/javascript" src="/ext/shared-jy/hammerjs.js"></script>
