@@ -8,6 +8,7 @@
 #             \/    \/                  \/      \/          \/           \/          \/ 
 ## by @juched - Generate Stats for GUI tab
 ## with credit to @JackYaz for his shared scripts
+#########################################################################################################
 ## v1.0.0 - initial text based only UI items
 ## v1.1.0 - March 3 2020 - Added graphs for histogram and answers, fixed install to not create duplicate tabs
 ## v1.1.1 - March 8 2020 - Added new install of JackYaz shared graphing files (previously needed to have one of JackYaz's other plugins installed)
@@ -20,8 +21,17 @@
 ## v1.2.5 - April 13 2020 - During install, do not Generate stats if unbound is not running
 ## v1.3.0 - April 16 2020 - Show stats for DNS Firewall
 ## v1.4.0 - March 7 2021 - Introduce locking standard around mounting and unmouning, increase max pages to 20
-## v1.4.1 - April 6 2021 - Fix statup timeout killing init, (missing tabs, double data, etc).
-## v1.4.2 - July 04 2024 - Fixed error when loading WebGUI page on 3006.102.1 F/W version [Martinski W.]
+## v1.4.1 - April 6 2021 - Fix startup timeout killing init, (missing tabs, double data, etc).
+## v1.4.2 - July 04 2024 - Fixed errors when loading WebGUI page on 3006.102.1 F/W version [Martinski W.]
+##          June 08 2025 - Fixed errors not linking the required shared-jy directory if only Unbound is installed [ExtremeFiretop]
+##          June 08 2025 - Updated URL for shared JackYaz chart/graph files to use new AMTM-OSR path [ExtremeFiretop]
+##          June 08 2025 - Improved fix to make sure symbolic link to shared directory for JackYaz chart/graph files
+##                         gets created under all conditions: installation, startups and reboots [Martinski W.]
+##          June 08 2025 - Added "export PATH" statement to give the built-in binaries higher priority than 
+##                         their equivalent Entware binaries [Martinski W.]
+#########################################################################################################
+# Last Modified: 2025-Jun-08
+#----------------------------------------
 readonly SCRIPT_VERSION="v1.4.2"
 
 #define www script names
@@ -35,11 +45,14 @@ readonly SCRIPT_DIR="/jffs/addons/unbound"
 
 #needed for shared jy graph files from @JackYaz
 readonly SHARED_DIR="/jffs/addons/shared-jy"
-readonly SHARED_REPO="https://raw.githubusercontent.com/jackyaz/shared-jy/master"
+readonly SHARED_REPO="https://raw.githubusercontent.com/AMTM-OSR/shared-jy/master"
 readonly SHARED_WEB_DIR="$SCRIPT_WEBPAGE_DIR/shared-jy"
 
 #define needed commands
 readonly UNBOUNCTRLCMD="unbound-control"
+
+# Give priority to built-in binaries #
+export PATH="/bin:/usr/bin:/sbin:/usr/sbin:$PATH"
 
 #define data file names
 raw_statsFile="/tmp/unbound_raw_stats.txt"
@@ -470,34 +483,58 @@ Auto_ServiceEvent(){
 	esac
 }
 
+##----------------------------------------##
+## Modified by Martinski W. [2025-Jun-08] ##
+##----------------------------------------##
+Create_Dirs()
+{
+	if [ ! -d "$SCRIPT_DIR" ]; then
+		mkdir -p "$SCRIPT_DIR"
+	fi
 
-Create_Dirs(){
+	if [ ! -d "$SHARED_DIR" ]; then
+		mkdir -p "$SHARED_DIR"
+	fi
 
 	if [ ! -d "$SCRIPT_WEBPAGE_DIR" ]; then
 		mkdir -p "$SCRIPT_WEBPAGE_DIR"
 	fi
-	
+
 	if [ ! -d "$SCRIPT_WEB_DIR" ]; then
 		mkdir -p "$SCRIPT_WEB_DIR"
 	fi
 
-	# migrate to USB key, to aviod using space on JFFs
+	# Migrate to USB drive to avoid using space on JFFS #
 	if [ -f "$dbOldStats" ]; then
-		mv $dbOldStats $dbStats
+		mv -f "$dbOldStats" "$dbStats"
 	fi
 }
 
-Get_WebUI_Installed () {
+##-------------------------------------##
+## Added by Martinski W. [2025-Jun-08] ##
+##-------------------------------------##
+Create_Symlinks()
+{
+	if [ ! -d "$SHARED_WEB_DIR" ]; then
+		ln -s "$SHARED_DIR" "$SHARED_WEB_DIR" 2>/dev/null
+	fi
+}
+
+Get_WebUI_Installed() 
+{
 	md5_installed="0"
 	if [ -f $installedMD5File ]; then
 		md5_installed="$(cat $installedMD5File)"
 	fi
 }
 
-Get_WebUI_Page () {
-	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+Get_WebUI_Page()
+{
+	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+	do
 		page="$SCRIPT_WEBPAGE_DIR/user$i.asp"
-		if [ ! -f "$page" ] || [ "$(md5sum < "$1")" = "$(md5sum < "$page")" ] || [ "$2" = "$(md5sum < "$page")" ]; then
+		if [ ! -f "$page" ] || [ "$(md5sum < "$1")" = "$(md5sum < "$page")" ] || [ "$2" = "$(md5sum < "$page")" ]
+		then
 			MyPage="user$i.asp"
 			return
 		fi
@@ -505,9 +542,10 @@ Get_WebUI_Page () {
 	MyPage="none"
 }
 
-Mount_WebUI(){
-	if nvram get rc_support | grep -qF "am_addons"; then
-	
+Mount_WebUI()
+{
+	if nvram get rc_support | grep -qF "am_addons"
+	then
 		### locking mechanism code credit to Martineau (@MartineauUK) ###
 		LOCKFILE=/tmp/addonwebui.lock
 		FD=386
@@ -563,8 +601,8 @@ Mount_WebUI(){
 	fi
 }
 
-Unmount_WebUI(){
-
+Unmount_WebUI()
+{
 	### locking mechanism code credit to Martineau (@MartineauUK) ###
 	LOCKFILE=/tmp/addonwebui.lock
 	FD=386
@@ -586,9 +624,10 @@ Unmount_WebUI(){
 }
 
 # $1 show commands
-ScriptHeader() { 
-	printf "\\n"
-	printf "##\\n"
+ScriptHeader()
+{ 
+	printf "\n"
+	printf "##\n"
 	printf "# ____ ___     ___.                            .___   _________ __          __          \\n"
 	printf "#|    |   \____\_ |__   ____  __ __  ____    __| _/  /   _____//  |______ _/  |_  ______\\n"
 	printf "#|    |   /    \| __ \ /  _ \|  |  \/    \  / __ |   \_____  \\   __\__  \\   __\/  ___/\\n"
@@ -597,33 +636,38 @@ ScriptHeader() {
 	printf "#             \/    \/                  \/      \/          \/           \/          \/ \\n"
 	printf "## by @juched - Generate Stats for GUI tab - %s                                         \\n" "$SCRIPT_VERSION"
 	printf "## with credit to @JackYaz for his shared scripts                                       \\n"
-	printf "\\n"
-	if [ ! -z $1 ]; then
-		printf "unbound_stats.sh\\n"
+	printf "\n"
+
+	if [ $# -eq 1 ] && [ -n $1 ]
+	then
+		printf "unbound_stats.sh\n"
 		printf "		install   - Installs the needed files to show UI and update stats\\n"
 		printf "		generate  - enerates statistics now for UI\\n"
 		printf "		uninstall - Removes files needed for UI and stops stats update\\n"
 	fi
 }
 
-Download_File(){
+Download_File()
+{
 	/usr/sbin/curl -fsL --retry 3 "$1" -o "$2"
 }
 
-Install_Dependancies(){
-	#install SQLite if not installed
-	if [ ! -f /opt/bin/sqlite3 ]; then
+##----------------------------------------##
+## Modified by Martinski W. [2025-Jun-08] ##
+##----------------------------------------##
+Install_Dependancies()
+{
+	# Install SQLite if not found #
+	if [ ! -f /opt/bin/sqlite3 ]
+	then
 		echo "Installing required version of sqlite3 from Entware"
 		opkg update
 		opkg install sqlite3-cli
 	fi
 
-	# make shared JY charts directory, and download if needed
-	if [ ! -d "$SHARED_DIR" ]; then
-		echo "Shared JY directory doesn't exist, let's make it..."
-		mkdir "$SHARED_DIR"
-	fi
-	if [ ! -f "$SHARED_DIR/shared-jy.tar.gz.md5" ]; then
+	# Download shared JY chart/graph files, if needed #
+	if [ ! -f "$SHARED_DIR/shared-jy.tar.gz.md5" ]
+    then
 		Download_File "$SHARED_REPO/shared-jy.tar.gz" "$SHARED_DIR/shared-jy.tar.gz"
 		Download_File "$SHARED_REPO/shared-jy.tar.gz.md5" "$SHARED_DIR/shared-jy.tar.gz.md5"
 		tar -xzf "$SHARED_DIR/shared-jy.tar.gz" -C "$SHARED_DIR"
@@ -632,7 +676,8 @@ Install_Dependancies(){
 	else
 		localmd5="$(cat "$SHARED_DIR/shared-jy.tar.gz.md5")"
 		remotemd5="$(curl -fsL --retry 3 "$SHARED_REPO/shared-jy.tar.gz.md5")"
-		if [ "$localmd5" != "$remotemd5" ]; then
+		if [ "$localmd5" != "$remotemd5" ]
+        then
 			Download_File "$SHARED_REPO/shared-jy.tar.gz" "$SHARED_DIR/shared-jy.tar.gz"
 			Download_File "$SHARED_REPO/shared-jy.tar.gz.md5" "$SHARED_DIR/shared-jy.tar.gz.md5"
 			tar -xzf "$SHARED_DIR/shared-jy.tar.gz" -C "$SHARED_DIR"
@@ -640,14 +685,10 @@ Install_Dependancies(){
 			echo "New version of shared-jy.tar.gz downloaded"
 		fi
 	fi
-
-	#Symlink the shared jy folder if it doesn't exist
-	if [ ! -d "$SHARED_WEB_DIR" ]; then
-		ln -s "$SHARED_DIR" "$SHARED_WEB_DIR" 2>/dev/null
-	fi
 }
 
-Wait_For_Unbound() {
+Wait_For_Unbound()
+{
 	echo "Checking if Unbound is running to generate stats..."
         WAIT=10    #give 150 seconds or so for unbound to start 
         I=0
@@ -663,14 +704,20 @@ Wait_For_Unbound() {
 }
 
 #Main loop
-if [ -z "$1" ]; then
+if [ $# -eq 0 ] || [ -z "$1" ]
+then
 	ScriptHeader show_commands
 	exit 0
 fi
 
+##----------------------------------------##
+## Modified by Martinski W. [2025-Jun-08] ##
+##----------------------------------------##
 ScriptHeader
 case "$1" in
 	install)
+		Create_Dirs
+		Create_Symlinks
 		Install_Dependancies
 		Auto_Startup delete
 		Auto_ServiceEvent delete
@@ -679,18 +726,19 @@ case "$1" in
 		Auto_ServiceEvent create
 		Auto_Cron create
 		Mount_WebUI
-		Create_Dirs
 		sh /jffs/addons/unbound/unbound_log.sh
 		Generate_UnboundStats
 		exit 0
 	;;
 	startup)
-		# only start on entware mount	
-		if [ -f "$2/entware/bin/opkg" ]; then
-			echo "Found entware mount... startup now..."
+		# Start only on Entware mount #	
+		if [ -f "$2/entware/bin/opkg" ]
+		then
+			echo "Found Entware mount... startup now..."
+			Create_Dirs
+			Create_Symlinks
 			Auto_Cron create
 			Mount_WebUI
-			Create_Dirs
 			Wait_For_Unbound
 			Generate_UnboundStats
 		fi
