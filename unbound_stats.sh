@@ -29,14 +29,15 @@
 ##                         gets created under all conditions: installation, startups and reboots [Martinski W.]
 ##          June 08 2025 - Added "export PATH" statement to give the built-in binaries higher priority than 
 ##                         their equivalent Entware binaries [Martinski W.]
-## v1.4.3   June 14 2025 - Added "checkupdate" and "forceupdate" parameters to make it easier to update
-##                         the add-on without forcing to unistall and then reinstall [Martinski W.]
+## v1.4.3 - June 14 2025 - Added "checkupdate" and "forceupdate" parameters to make it easier to update
+##                         the script without forcing users to uninstall and reinstall [Martinski W.]
+##          June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 #########################################################################################################
 # Last Modified: 2025-Jun-14
 #-------------------------------------------------
 
 readonly SCRIPT_VERSION="v1.4.3"
-readonly SCRIPT_VERSTAG="25061402"
+readonly SCRIPT_VERSTAG="25061404"
 SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
@@ -709,9 +710,8 @@ Unmount_WebUI()
 }
 
 ##----------------------------------------##
-## Modified by Martinski W. [2025-Jun-13] ##
+## Modified by Martinski W. [2025-Jun-14] ##
 ##----------------------------------------##
-# $1 show commands #
 ScriptHeader()
 {
 	printf "\n"
@@ -725,19 +725,23 @@ ScriptHeader()
 	printf "## by @juched - Generate Stats for GUI tab - %s                                         \\n" "$SCRIPT_VERSION"
 	printf "## with credit to @JackYaz for his shared scripts                                       \\n"
 	printf "\n"
+}
 
-	if [ $# -eq 1 ] && [ -n $1 ]
-	then
-        printf "$SCRIPT_NAME_LOWER ${GRNct}${SCRIPT_VERS_INFO}${CLRct}\n"
-	    cat <<EOF
-        install     - Installs required files for WebUI and update stats
-        checkupdate - Checks for latest available updates, if any
-        forceupdate - Updates to the latest version (force update)
-        generate    - Generates statistics now for WebUI
-        uninstall   - Removes files for WebUI and stops stats update
+##----------------------------------------##
+## Modified by Martinski W. [2025-Jun-14] ##
+##----------------------------------------##
+Show_Help()
+{
+    printf "HELP ${GRNct}${SCRIPT_VERS_INFO}${CLRct}\n"
+	cat <<EOF
+$SCRIPT_NAME_LOWER
+        install      -  Installs required files for WebUI and update stats
+        checkupdate  -  Checks for latest available updates, if any
+        forceupdate  -  Updates to the latest version (force update)
+        generate     -  Generates statistics now for WebUI
+        uninstall    -  Removes files for WebUI and stops stats update
 EOF
-	    printf "\n"
-	fi
+	printf "\n"
 }
 
 ##----------------------------------------##
@@ -1035,12 +1039,12 @@ fi
 
 if [ $# -eq 0 ] || [ -z "$1" ]
 then
-	ScriptHeader show_commands
+	ScriptHeader ; Show_Help
 	exit 0
 fi
 
 ##----------------------------------------##
-## Modified by Martinski W. [2025-Jun-13] ##
+## Modified by Martinski W. [2025-Jun-14] ##
 ##----------------------------------------##
 ScriptHeader
 case "$1" in
@@ -1084,5 +1088,14 @@ case "$1" in
 		[ -f "$dbLogs" ] &&  rm -f "$dbLogs"
         printf "\n${PASS}Uninstallation was completed.${CLRct}\n\n"
 		exit 0
+	;;
+	help)
+		Show_Help
+		exit 0
+	;;
+	*)
+		printf "${ERR}Parameter [$*] is NOT recognised.${CLRct}\n"
+		printf "${BOLD}For a list of available commands run: $SCRIPT_NAME_LOWER help${CLRct}\n\n"
+		exit 1
 	;;
 esac
