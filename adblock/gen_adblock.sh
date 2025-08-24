@@ -80,7 +80,7 @@ download_file () {
       if [ "${url##*.}" == "zone" ];then
         curl --progress-bar $url | sed -rn 's/^local-zone: "(.*)".*$/\1/p' | sort >> $list
       else
-        curl --progress-bar $url | grep -o '^[^#]*' | grep -v "::1" | grep -v "0.0.0.0 0.0.0.0" | sed '/^$/d' | sed 's/\ /\\ /g' | awk '{print $NF}' | grep -o '^[^\\]*' | grep -o '^[^\\$]*' | sort >> $list
+        curl --progress-bar $url | grep -o '^[^#]*' | grep -v "::1" | grep -v "0.0.0.0 0.0.0.0" | sed '/^$/d' | sed 's/\ /\\ /g' | awk '{print tolower($NF)}' | grep -o '^[^\\]*' | grep -o '^[^\\$]*' | sort >> $list
       fi
       dos2unix $list
       count=$((count + 1))
@@ -124,6 +124,7 @@ download_file $blocksites $tempoutlist
 [ -f $tempoutlist ] && echo "Removing unnecessary formatting from the domain list..." && cleanup $tempoutlist $outlist $finalist
 
 echo "Generating Unbound adservers file..."
+sed -i '/\.\.\./d' $finalist
 awk '{print "local-zone: \""$1"\" always_nxdomain"}' $finalist > $adlist
 numberOfHostsBlocked=$(wc -l < $adlist)
 Say "Number of adblocked hosts: $numberOfHostsBlocked"
