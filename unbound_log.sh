@@ -7,7 +7,6 @@
 #|______/|___|  /___  /\____/|____/|___|  /\____ |  |_______ \____/\___  / 
 #             \/    \/                  \/      \/          \/    /_____/  
 ## @juched - Process logs into SQLite3 for stats generation
-
 ## unbound_log.sh
 ######################################################################################
 ## - v1.0.0 - March 24 2020 - Initial version doing both nx_domains and reply_domains
