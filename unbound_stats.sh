@@ -53,8 +53,8 @@
 ###################################################
 
 readonly SCRIPT_VERSION="v1.4.3"
-readonly SCRIPT_VERSTAG="25082400"
-SCRIPT_BRANCH="develop"
+readonly SCRIPT_VERSTAG="25082407"
+SCRIPT_BRANCH="master"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
 #define www script names#
@@ -919,7 +919,7 @@ Mount_WebUI()
 	fi
 	cp -fp "$SCRIPT_DIR/unboundstats_www.asp" "$SCRIPT_WEBPAGE_DIR/$MyWebPage"
 
-	echo "Saving MD5 of installed file $SCRIPT_DIR/unboundstats_www.asp to $installedMD5File"
+	echo "Saving MD5 of installed file 'unboundstats_www.asp' to $installedMD5File"
 	md5sum < "$SCRIPT_DIR/unboundstats_www.asp" > "$installedMD5File"
 
 	if [ ! -f /tmp/index_style.css ]; then
