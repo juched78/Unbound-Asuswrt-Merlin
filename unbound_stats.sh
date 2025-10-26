@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2025-Aug-24
+# Last Modified: 2025-Oct-25
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -52,9 +52,9 @@
 # shellcheck disable=SC3045
 ###################################################
 
-readonly SCRIPT_VERSION="v1.4.3"
-readonly SCRIPT_VERSTAG="25082407"
-SCRIPT_BRANCH="master"
+readonly SCRIPT_VERSION="v1.4.4"
+readonly SCRIPT_VERSTAG="25102522"
+SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
 #define www script names#
@@ -87,8 +87,8 @@ readonly webPageLineTabExp="\{url: \"$webPageFileRegExp\", tabName: "
 readonly webPageLineRegExp="${webPageLineTabExp}\"$WEBPAGE_TAG\"\},"
 readonly BEGIN_MenuAddOnsTag="/\*\*BEGIN:_AddOns_\*\*/"
 readonly ENDIN_MenuAddOnsTag="/\*\*ENDIN:_AddOns_\*\*/"
-readonly branchx_TAG="Branch: $SCRIPT_BRANCH"
-readonly version_TAG="${SCRIPT_VERSION}_${SCRIPT_VERSTAG}"
+readonly branchxStr_TAG="[Branch: $SCRIPT_BRANCH]"
+readonly versionDev_TAG="${SCRIPT_VERSION}_${SCRIPT_VERSTAG}"
 readonly SHARE_TEMP_DIR="/opt/share/tmp"
 
 readonly CLRct="\e[0m"
@@ -1035,21 +1035,26 @@ Unmount_WebUI()
 }
 
 ##----------------------------------------##
-## Modified by Martinski W. [2025-Aug-11] ##
+## Modified by Martinski W. [2025-Oct-25] ##
 ##----------------------------------------##
 ScriptHeader()
 {
-	printf "\n"
-	printf "##\n"
+	if [ $# -eq 0 ] || [ -z "$1" ] || \
+	   echo "$1" | grep -qvE "^(install|uninstall)$"
+	then clear
+	fi
+	local colorCT
+	[ "$SCRIPT_BRANCH" = "master" ] && colorCT="$GRNct" || colorCT="$MGNTct"
+	echo
+	printf "${BOLD}##\n"
 	printf "# ____ ___     ___.                            .___   _________ __          __          \n"
 	printf "#|    |   \____\_ |__   ____  __ __  ____    __| _/  /   _____//  |______ _/  |_  ______\n"
 	printf "#|    |   /    \| __ \ /  _ \|  |  \/    \  / __ |   \_____  \\   __\__  \\   __\/  ___/\n"
 	printf "#|    |  /   |  \ \_\ (  <_> )  |  /   |  \/ /_/ |   /        \|  |  / __ \|  |  \___ \ \n"
 	printf "#|______/|___|  /___  /\____/|____/|___|  /\____ |  /_______  /|__| (____  /__| /____  >\n"
 	printf "#             \/    \/                  \/      \/          \/           \/          \/ \n"
-	printf "## by @juched - Generate Stats for GUI tab - ${GRNct}%s [%s]${CLRct}\n" "$SCRIPT_VERSION" "$branchx_TAG"
-	printf "## with credit to @JackYaz for his shared scripts\n"
-	printf "\n"
+	printf "## by @juched - Generate Stats for GUI tab - ${GRNct}%s${CLRct} ${colorCT}%s${CLRct}\n" "$SCRIPT_VERSION" "$branchxStr_TAG"
+	printf "${BOLD}## with credit to @JackYaz for his shared scripts${CLRct}\n\n"
 }
 
 ##----------------------------------------##
@@ -1423,7 +1428,7 @@ export SQLITE_TMPDIR TMPDIR
 ##-------------------------------------##
 if [ "$SCRIPT_BRANCH" = "master" ]
 then SCRIPT_VERS_INFO=""
-else SCRIPT_VERS_INFO="[$version_TAG]"
+else SCRIPT_VERS_INFO="[$versionDev_TAG]"
 fi
 
 if [ $# -eq 0 ] || [ -z "$1" ]
@@ -1438,7 +1443,7 @@ fi
 ##----------------------------------------##
 ## Modified by Martinski W. [2025-Jun-28] ##
 ##----------------------------------------##
-ScriptHeader
+ScriptHeader "$1"
 case "$1" in
 	install)
 		AddOn_Install

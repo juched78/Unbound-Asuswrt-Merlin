@@ -1,7 +1,7 @@
 # Unbound-Asuswrt-Merlin
 
-## v1.4.3
-### Updated on 2025-Aug-24
+## v1.4.4
+### Updated on 2025-Oct-25
 
 ## About
 This repo includes support files used by Unbound_Manager.sh maintained by MartineauUK.
