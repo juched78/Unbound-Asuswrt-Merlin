@@ -75,8 +75,6 @@ th.keystatsnumber {
 <script language="JavaScript" type="text/javascript" src="/general.js"></script>
 <script language="JavaScript" type="text/javascript" src="/popup.js"></script>
 <script language="JavaScript" type="text/javascript" src="/help.js"></script>
-<script language="JavaScript" type="text/javascript" src="/tmhist.js"></script>
-<script language="JavaScript" type="text/javascript" src="/tmmenu.js"></script>
 <script language="JavaScript" type="text/javascript" src="/client_function.js"></script>
 <script language="JavaScript" type="text/javascript" src="/validator.js"></script>
 <script language="JavaScript" type="text/javascript" src="/ext/unbound_stats.sh/unboundstats.js"></script>
@@ -89,13 +87,17 @@ th.keystatsnumber {
 <script language="JavaScript" type="text/javascript" src="/ext/unbound_stats.sh/unbounddailyreplies.js"></script>
 <script language="JavaScript" type="text/javascript" src="/ext/unbound_stats.sh/unboundrpzstats.js"></script>
 <script language="JavaScript" type="text/javascript" src="/ext/unbound_stats.sh/unboundrpzhits.js"></script>
-
-
 <script>
+
+/**----------------------------------------**/
+/** Modified by Martinski W. [2025-Oct-27] **/
+/**----------------------------------------**/
+
 // Keep the real data in a seperate object called allData
 // Put only that part of allData in the dataset to optimize zoom/pan performance
 // Author: Evert van der Weit - 2018
-function filterData(chartInstance) {
+function filterData(chartInstance)
+{
 	var datasets = chartInstance.data.datasets;
 	var originalDatasets = chartInstance.data.allData;
 	var chartOptions = chartInstance.options.scales.xAxes[0];
@@ -136,7 +138,8 @@ var datafilterPlugin = {
 }
 
 /* create and return new array padding missing days*/
-function FillEmptyDates(startDay, endDay, data) {
+function FillEmptyDates(startDay, endDay, data)
+{
   var strStart = startDay.getFullYear() + "-" + (startDay.getMonth()+1) + "-" + startDay.getDate();
   var momStart = moment(strStart, "YYYY-MM-DD");
   var strEnd = endDay.getFullYear() + "-" + (endDay.getMonth()+1) + "-" + endDay.getDate();
@@ -210,7 +213,9 @@ function Draw_Chart_NoData(txtchartname){
 	ctx.fillText('No data to display', 365, 150);
 	ctx.restore();
 }
-function Draw_Chart(txtchartname,txttitle,txtunity,txtunitx,numunitx,colourname,txtdateformat,sugMinY){
+
+function Draw_Chart(txtchartname,txttitle,txtunity,txtunitx,numunitx,colourname,txtdateformat,sugMinY)
+{
 	var objchartname=window["LineChart"+txtchartname];
 	var txtdataname="Data"+txtchartname;
 	var objdataname=window["Data"+txtchartname];
@@ -392,12 +397,16 @@ function Draw_Chart(txtchartname,txttitle,txtunity,txtunitx,numunitx,colourname,
 	});
 	window[txtchartname]=objchartname;
 }
-function getLimit(datasetname,axis,maxmin) {
+
+function getLimit(datasetname,axis,maxmin)
+{
 	limit=0;
 	eval("limit=Math."+maxmin+".apply(Math, "+datasetname+".map(function(o) { return o."+axis+";} ))");
 	return limit;
 }
-function getAverage(datasetname) {
+
+function getAverage(datasetname)
+{
 	var total = 0;
 	for(var i = 0; i < datasetname.length; i++) {
 		total += datasetname[i].y;
@@ -405,10 +414,14 @@ function getAverage(datasetname) {
 	var avg = total / datasetname.length;
 	return avg;
 }
-function round(value, decimals) {
+
+function round(value, decimals)
+{
 	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
 }
-function ToggleLines() {
+
+function ToggleLines()
+{
 	if(ShowLines == ""){
 		ShowLines = "line";
 		SetCookie("ShowLines","line");
@@ -419,7 +432,9 @@ function ToggleLines() {
 	}
 	RedrawAllCharts();
 }
-function ToggleFill() {
+
+function ToggleFill()
+{
 	if(ShowFill == false){
 		ShowFill = "origin";
 		SetCookie("ShowFill","origin");
@@ -430,77 +445,97 @@ function ToggleFill() {
 	}
 	RedrawAllCharts();
 }
-function RedrawAllCharts() {
+
+function RedrawAllCharts()
+{
 	Draw_Chart("divLineChartCacheHitPercentDaily","Cache Hit Percent","%","hour",24,"#fc8500",'YYYY-MM-DD HH:mm:ss',100);
 	Draw_Chart("divLineChartCacheHitPercentWeekly","Cache Hit Percent","%","day",7,"#42ecf5",'YYYY-MM-DD HH:mm:ss',100);
 	Draw_Chart("divLineChartCacheHitPercentMonthly","Cache Hit Percent","%","day",30,"#ffffff",'YYYY-MM-DD HH:mm:ss',100);
 	Draw_Chart("divLineChartRPZHitsMonthly","DNS Firewall Hits","hit(s)","day",30,"#ffffff",'YYYY-MM-DD',0);
 }
-function GetCookie(cookiename) {
+
+function GetCookie(cookiename)
+{
 	var s;
-	if ((s = cookie.get("unbound_"+cookiename)) != null) {
+	if ((s = cookie.get("unbound_"+cookiename)) != null)
+	{
 		return cookie.get("unbound_"+cookiename);
 	}
-	else {
-		return "";
-	}
+	else
+	{ return ""; }
 }
-function SetCookie(cookiename,cookievalue) {
+
+function SetCookie(cookiename, cookievalue)
+{
 	cookie.set("unbound_"+cookiename, cookievalue, 31);
 }
 
-function GetCookieNew(cookiename,default_value) {
+/**----------------------------------------**/
+/** Modified by Martinski W. [2025-Oct-27] **/
+/**----------------------------------------**/
+function GetCookieNew(cookiename, default_value)
+{
 	var s;
-	if ((s = cookie.get(cookiename)) != null) {
-			if (s.match(/^([0-2])$/)) {
-				E(cookiename).value = cookie.get(cookiename) * 1;
-			}
-	} else {
-		E(cookiename).value = default_value;
+	if ((s = cookie.get(cookiename)) != null)
+	{
+		if (s.match(/^([0-2])$/))
+		{
+			document.getElementById(cookiename).value = cookie.get(cookiename) * 1;
+		}
+	}
+	else
+	{
+		document.getElementById(cookiename).value = default_value;
 	}
 }
 
-function SetCurrentPage(){
+function SetCurrentPage()
+{
 	document.form.next_page.value = window.location.pathname.substring(1);
 	document.form.current_page.value = window.location.pathname.substring(1);
 }
 
-function initial(){
-	GetCookieNew("colourhistogram",0);
-	GetCookieNew("charttypehistogram",1);
-	GetCookieNew("colouranswers",0);
-	GetCookieNew("charttypeanswers",2);
-	GetCookieNew("colourtopblocked",0);
-	GetCookieNew("charttypetopblocked",0);
+/**----------------------------------------**/
+/** Modified by Martinski W. [2025-Oct-27] **/
+/**----------------------------------------**/
+function initial()
+{
+	GetCookieNew('colourhistogram', 0);
+	GetCookieNew('charttypehistogram', 1);
+	GetCookieNew('colouranswers', 0);
+	GetCookieNew('charttypeanswers', 2);
+	GetCookieNew('colourtopblocked', 0);
+	GetCookieNew('charttypetopblocked', 0);
 	SetCurrentPage();
 	show_menu();
 	SetUnboundStats();
 	SetUnboundStatsTitle();
 
-	// redraw the CPH and RPZ graphs
+	// redraw the CPH and RPZ graphs //
 	var startDate = new Date();
 	var endDate = new Date();
 	startDate.setDate(startDate.getDate() - 30);
 	DatadivLineChartRPZHitsMonthly = FillEmptyDates(startDate, endDate, DatadivLineChartRPZHitsMonthly);
 	RedrawAllCharts();
-	// change layouts which will setup types and then redraw graphs
-	changeLayout(E('charttypehistogram'),"BarChartHistogram","charttypehistogram");
-	changeLayout(E('charttypeanswers'),"BarChartAnswers","charttypeanswers");
-	changeLayout(E('charttypetopblocked'),"BarChartTopBlocked","charttypetopblocked");
-	changeLayout(E('charttypetopreplies'),"BarChartTopReplies","charttypetopreplies");
+	// change layouts which will setup types and then redraw graphs //
+	changeLayout (document.getElementById('charttypehistogram'), "BarChartHistogram", "charttypehistogram");
+	changeLayout (document.getElementById('charttypeanswers'), "BarChartAnswers", "charttypeanswers");
+	changeLayout (document.getElementById('charttypetopblocked'), "BarChartTopBlocked", "charttypetopblocked");
+	changeLayout (document.getElementById('charttypetopreplies'), "BarChartTopReplies", "charttypetopreplies");
 
-	// load tables
+	// load tables //
 	LoadDailyRepliesTable();
 	LoadRPZHitsTable();
 
 	$("thead").click(function(){
 		$(this).siblings().toggle("fast");
 	})
-	
+
 	$(".default-collapsed").trigger("click");
 }
 
-function get_BarChart(name) {
+function get_BarChart(name)
+{
 	if ("ChartHistogram" == name) {
 		return BarChartHistogram;
 	} else if ("ChartAnswers" == name) {
@@ -514,7 +549,8 @@ function get_BarChart(name) {
 	}
 }
 
-function set_BarChart(name, value) {
+function set_BarChart(name, value)
+{
 	if ("ChartHistogram" == name) {
 		BarChartHistogram = value;
 	} else if ("ChartAnswers" == name) {
@@ -526,11 +562,13 @@ function set_BarChart(name, value) {
 	}
 }
 
-function reload() {
+function reload()
+{
 	location.reload(true);
 }
 
-function applyRule() {
+function applyRule()
+{
 	var action_script_tmp = "start_unbound_stats.sh";
 	document.form.action_script.value = action_script_tmp;
 	var restart_time = document.form.action_wait.value*1;
@@ -538,9 +576,16 @@ function applyRule() {
 	document.form.submit();
 }
 
-function Draw_Bar_Chart(barLabels, barData, ChartName, charttype, colourtag) {
-	if(typeof barLabels === 'undefined' || barLabels === null || (Array.isArray(barLabels) && barLabels.length == 0)) { Draw_Chart_NoData(ChartName); return; }
-	if(typeof barData === 'undefined' || barData === null || (Array.isArray(barData) && barData.length == 0)) { Draw_Chart_NoData(ChartName); return; }
+/**----------------------------------------**/
+/** Modified by Martinski W. [2025-Oct-27] **/
+/**----------------------------------------**/
+function Draw_Bar_Chart(barLabels, barData, ChartName, charttype, colourtag)
+{
+	if (typeof barLabels === 'undefined' || barLabels === null || (Array.isArray(barLabels) && barLabels.length == 0))
+	{ Draw_Chart_NoData(ChartName); return; }
+	if (typeof barData === 'undefined' || barData === null || (Array.isArray(barData) && barData.length == 0))
+	{ Draw_Chart_NoData(ChartName); return; }
+
 	if (barLabels.length == 0) { Draw_Chart_NoData(ChartName); return; }
 	var BarChartName = get_BarChart(ChartName);
 	if (BarChartName != undefined) BarChartName.destroy();
@@ -620,11 +665,12 @@ function Draw_Bar_Chart(barLabels, barData, ChartName, charttype, colourtag) {
 		data: barDataset
 	});
 	set_BarChart(ChartName, BarChartName);
-	changeColour(E(colourtag),BarChartName,barData,colourtag)
+	changeColour (document.getElementById(colourtag), BarChartName, barData, colourtag);
 }
 
-function changeColour(e,chartname,datasetname,cookiename) {
-	colour = e.value * 1;
+function changeColour(elem, chartname, datasetname, cookiename)
+{
+	colour = elem.value * 1;
 	if ( colour == 0 ) {
 		chartname.config.data.datasets[0].backgroundColor = poolColors(datasetname.length);
 	}
@@ -635,9 +681,11 @@ function changeColour(e,chartname,datasetname,cookiename) {
 	chartname.update();
 }
 
-function changeLayout(e,chartname,cookiename) {
-	layout = e.value * 1;
-	if ( layout == 0 ) {
+function changeLayout(elem, chartname, cookiename)
+{
+	layout = elem.value * 1;
+	if ( layout == 0 )
+	{
 		if ( chartname == "BarChartHistogram" ) {
 			charttypehistogram = "horizontalBar";
 		}
@@ -650,9 +698,9 @@ function changeLayout(e,chartname,cookiename) {
 		else if ( chartname == "BarChartTopReplies" ) {
 			charttypetopreplies = "horizontalBar";
 		}
-
 	}
-	else if ( layout == 1 ) {
+	else if ( layout == 1 )
+	{
 		if ( chartname == "BarChartHistogram" ) {
 			charttypehistogram = "bar";
 		}
@@ -667,7 +715,8 @@ function changeLayout(e,chartname,cookiename) {
 		}
 
 	}
-	else if ( layout == 2 ) {
+	else if ( layout == 2 )
+	{
 		if ( chartname == "BarChartHistogram" ) {
 			charttypehistogram = "pie";
 		}
@@ -695,10 +744,10 @@ function changeLayout(e,chartname,cookiename) {
 	else if ( chartname == "BarChartTopReplies" ) {
 		Draw_Bar_Chart(barLabelsTopReplies, barDataTopReplies, "ChartTopReplies", charttypetopreplies, "colourtopreplies");
 	}
-
 }
 
-function showGrid(e,axis) {
+function showGrid(e, axis)
+{
 	if (e == null) {
 		return true;
 	}
@@ -709,7 +758,9 @@ function showGrid(e,axis) {
 		return true;
 	}
 }
-function showAxis(e,axis) {
+
+function showAxis(e, axis)
+{
 	if (e == "bar" && axis == "x") {
 		return false;
 	}
@@ -726,20 +777,25 @@ function showAxis(e,axis) {
 	}
 }
 
-function getRandomColor() {
+function getRandomColor()
+{
 	var r = Math.floor(Math.random() * 255);
 	var g = Math.floor(Math.random() * 255);
 	var b = Math.floor(Math.random() * 255);
 	return "rgba(" + r + "," + g + "," + b + ", 1)";
 }
-function poolColors(a) {
+
+function poolColors(a)
+{
 	var pool = [];
 	for(i = 0; i < a; i++) {
 		pool.push(getRandomColor());
 	}
 	return pool;
 }
-function getChartType(e) {
+
+function getChartType(e)
+{
 	if (e == null) {
 		return 'horizontalBar';
 	}
@@ -748,8 +804,8 @@ function getChartType(e) {
 	}
 }
 
-
-function getSDev(datasetname){
+function getSDev(datasetname)
+{
 	var avg = getAvg(datasetname);
 	
 	var squareDiffs = datasetname.map(function(value){
@@ -762,11 +818,15 @@ function getSDev(datasetname){
 	var stdDev = Math.sqrt(avgSquareDiff);
 	return stdDev;
 }
-function getMax(datasetname) {
+
+function getMax(datasetname)
+{
 	max = Math.max(...datasetname);
 	return max + (max*0.1);
 }
-function getAvg(datasetname) {
+
+function getAvg(datasetname)
+{
 	var sum, avg = 0;
 	
 	if (datasetname.length) {
@@ -777,7 +837,8 @@ function getAvg(datasetname) {
 	return avg;
 }
 
-function ZoomPanEnabled(charttype) {
+function ZoomPanEnabled(charttype)
+{
 	if (charttype == "bar") {
 		return 'y';
 	}
@@ -785,7 +846,9 @@ function ZoomPanEnabled(charttype) {
 		return 'x';
 	}
 }
-function ZoomPanMax(charttype, axis, datasetname) {
+
+function ZoomPanMax(charttype, axis, datasetname)
+{
 	if (axis == "x") {
 		if (charttype == "bar") {
 			return null;

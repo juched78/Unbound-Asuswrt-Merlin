@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2025-Oct-25
+# Last Modified: 2025-Oct-27
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -53,7 +53,7 @@
 ###################################################
 
 readonly SCRIPT_VERSION="v1.4.4"
-readonly SCRIPT_VERSTAG="25102522"
+readonly SCRIPT_VERSTAG="25102709"
 SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
@@ -771,6 +771,15 @@ Create_Symlinks()
 	fi
 }
 
+##-------------------------------------##
+## Added by Martinski W. [2025-Oct-27] ##
+##-------------------------------------##
+_CheckFor_WebGUI_Page_()
+{
+   if [ "$(_Check_WebGUI_Page_Exists_)" = "NONE" ]
+   then Mount_WebUI ; fi
+}
+
 Get_WebUI_MD5_Installed() 
 {
 	md5_installed=0
@@ -1265,7 +1274,7 @@ Update_Version()
 }
 
 ##----------------------------------------##
-## Modified by Martinski W. [2025-Aug-11] ##
+## Modified by Martinski W. [2025-Oct-27] ##
 ##----------------------------------------##
 Check_Dependencies()
 {
@@ -1311,8 +1320,7 @@ Check_Dependencies()
 		echo
 	fi
 
-	if [ $# -gt 0 ] && [ -n "$1" ] && \
-        echo "$1" | grep -qE "^(install|startup)$"
+	if [ $# -gt 0 ] && [ "$1" = "install" ]
 	then
 		Update_File emptystats
 		Update_File shared-jy.tar.gz
@@ -1431,10 +1439,15 @@ then SCRIPT_VERS_INFO=""
 else SCRIPT_VERS_INFO="[$versionDev_TAG]"
 fi
 
+##----------------------------------------##
+## Modified by Martinski W. [2025-Oct-27] ##
+##----------------------------------------##
 if [ $# -eq 0 ] || [ -z "$1" ]
 then
 	ScriptHeader
-	Check_Dependencies
+	if Check_Dependencies
+	then _CheckFor_WebGUI_Page_
+	fi
 	printf "WebUI for %s is available at:\n${INFO}%s${CLRct}\n\n" "$SCRIPT_NAME" "$(Get_WebUI_URL)"
 	Show_Help
 	exit 0
