@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2025-Nov-02
+# Last Modified: 2025-Nov-04
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -52,8 +52,8 @@
 # shellcheck disable=SC3045
 ###################################################
 
-readonly SCRIPT_VERSION="v1.4.4"
-readonly SCRIPT_VERSTAG="25110222"
+readonly SCRIPT_VERSION="v1.4.5"
+readonly SCRIPT_VERSTAG="25110422"
 SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
@@ -153,7 +153,7 @@ Print_Output()
 		    "$PASS") prioNum=6 ;; #INFO#
 		          *) prioNum=5 ;; #NOTICE#
 		esac
-		logger -t "$SCRIPT_NAME" -p $prioNum "$2"
+		logger -t "${SCRIPT_NAME}_[$$]" -p $prioNum "$2"
 	fi
 	printf "${BOLD}${3}${2}${CLRct}\n\n"
 }
