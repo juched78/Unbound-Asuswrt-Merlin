@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2025-Nov-04
+# Last Modified: 2026-Feb-18
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -53,7 +53,7 @@
 ###################################################
 
 readonly SCRIPT_VERSION="v1.4.5"
-readonly SCRIPT_VERSTAG="25110422"
+readonly SCRIPT_VERSTAG="26021800"
 SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
@@ -90,6 +90,9 @@ readonly ENDIN_MenuAddOnsTag="/\*\*ENDIN:_AddOns_\*\*/"
 readonly branchxStr_TAG="[Branch: $SCRIPT_BRANCH]"
 readonly versionDev_TAG="${SCRIPT_VERSION}_${SCRIPT_VERSTAG}"
 readonly SHARE_TEMP_DIR="/opt/share/tmp"
+
+# To support automatic script updates from AMTM #
+doScriptUpdateFromAMTM=true
 
 readonly CLRct="\e[0m"
 readonly CRIT="\e[41m"
@@ -1205,7 +1208,7 @@ Update_Check()
 }
 
 ##----------------------------------------##
-## Modified by Martinski W. [2025-Aug-11] ##
+## Modified by Martinski W. [2026-Feb-18] ##
 ##----------------------------------------##
 Update_Version()
 {
@@ -1268,9 +1271,30 @@ Update_Version()
 		Download_File "$SCRIPT_REPO/$SCRIPT_NAME_LOWER" "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" && \
 		Print_Output true "$SCRIPT_NAME was successfully updated" "$PASS"
 		chmod 0755 "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" 2>/dev/null
-		exec "$0"
+		if [ $# -lt 2 ] || [ -z "$2" ]
+		then
+			PressEnter
+			exec "$0"
+		fi
 		exit 0
 	fi
+}
+
+##-------------------------------------##
+## Added by Martinski W. [2026-Feb-18] ##
+##-------------------------------------##
+ScriptUpdateFromAMTM()
+{
+    if ! "$doScriptUpdateFromAMTM"
+    then
+        printf "Automatic script updates via AMTM are currently disabled.\n\n"
+        return 1
+    fi
+    if [ $# -gt 0 ] && [ "$1" = "check" ]
+    then return 0
+    fi
+    Update_Version force unattended
+    return "$?"
 }
 
 ##----------------------------------------##
@@ -1454,9 +1478,14 @@ then
 fi
 
 ##----------------------------------------##
-## Modified by Martinski W. [2025-Jun-28] ##
+## Modified by Martinski W. [2026-Feb-18] ##
 ##----------------------------------------##
-ScriptHeader "$1"
+if [ $# -lt 2 ] || \
+   { [ "$1" != "amtmupdate" ] && [ "$2" != "check" ] ; }
+then
+    ScriptHeader "$1"
+fi
+
 case "$1" in
 	install)
 		AddOn_Install
@@ -1474,6 +1503,11 @@ case "$1" in
 	forceupdate)
 		Update_Version force
 		exit 0
+	;;
+	amtmupdate)
+		shift
+		ScriptUpdateFromAMTM "$@"
+		exit "$?"
 	;;
 	generate)
 		Create_Dirs
