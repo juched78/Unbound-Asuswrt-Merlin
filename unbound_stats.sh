@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2026-Feb-18
+# Last Modified: 2026-Mar-23
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -53,7 +53,7 @@
 ###################################################
 
 readonly SCRIPT_VERSION="v1.4.5"
-readonly SCRIPT_VERSTAG="26021800"
+readonly SCRIPT_VERSTAG="26032300"
 SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 

@@ -90,7 +90,7 @@ th.keystatsnumber {
 <script>
 
 /**----------------------------------------**/
-/** Modified by Martinski W. [2025-Oct-27] **/
+/** Modified by Martinski W. [2026-Mar-23] **/
 /**----------------------------------------**/
 
 // Keep the real data in a seperate object called allData
@@ -104,8 +104,9 @@ function filterData(chartInstance)
 	
 	var startX = chartOptions.time.min;
 	var endX = chartOptions.time.max;
-	if(typeof originalDatasets === 'undefined' || originalDatasets === null) { return; }
-	for(var i = 0; i < originalDatasets.length; i++) {
+	if (typeof originalDatasets === 'undefined' || originalDatasets === null) { return; }
+	for (var i = 0; i < originalDatasets.length; i++)
+	{
 		var dataset = datasets[i];
 		var originalData = originalDatasets[i];
 		
@@ -116,7 +117,8 @@ function filterData(chartInstance)
 		var sI = null;
 		var eI = null;
 		
-		for (var j = 0; j < originalData.length; j++) {
+		for (var j = 0; j < originalData.length; j++)
+		{
 			if ((sI==null) && originalData[j].x > s) {
 				sI = j;
 			}
@@ -126,7 +128,7 @@ function filterData(chartInstance)
 		}
 		if (sI==null) sI = 0;
 		if (originalData[originalData.length - 1].x < s) eI = 0
-			else if (eI==null) eI = originalData.length
+		else if (eI==null) eI = originalData.length
 		
 		dataset.data = originalData.slice(sI, eI);
 	}
@@ -219,7 +221,7 @@ function Draw_Chart(txtchartname,txttitle,txtunity,txtunitx,numunitx,colourname,
 	var objchartname=window["LineChart"+txtchartname];
 	var txtdataname="Data"+txtchartname;
 	var objdataname=window["Data"+txtchartname];
-	if(typeof objdataname === 'undefined' || objdataname === null) { Draw_Chart_NoData(txtchartname); return; }
+	if (typeof objdataname === 'undefined' || objdataname === null) { Draw_Chart_NoData(txtchartname); return; }
 	if (objdataname.length == 0) { Draw_Chart_NoData(txtchartname); return; }
 	factor=0;
 	if (txtunitx=="hour"){
@@ -408,7 +410,8 @@ function getLimit(datasetname,axis,maxmin)
 function getAverage(datasetname)
 {
 	var total = 0;
-	for(var i = 0; i < datasetname.length; i++) {
+	for (var i = 0; i < datasetname.length; i++)
+	{
 		total += datasetname[i].y;
 	}
 	var avg = total / datasetname.length;
@@ -422,11 +425,13 @@ function round(value, decimals)
 
 function ToggleLines()
 {
-	if(ShowLines == ""){
+	if (ShowLines == "")
+	{
 		ShowLines = "line";
 		SetCookie("ShowLines","line");
 	}
-	else {
+	else
+	{
 		ShowLines = "";
 		SetCookie("ShowLines","");
 	}
@@ -435,11 +440,13 @@ function ToggleLines()
 
 function ToggleFill()
 {
-	if(ShowFill == false){
+	if (ShowFill == false)
+	{
 		ShowFill = "origin";
 		SetCookie("ShowFill","origin");
 	}
-	else {
+	else
+	{
 		ShowFill = false;
 		SetCookie("ShowFill",false);
 	}
@@ -577,12 +584,13 @@ function applyRule()
 }
 
 /**----------------------------------------**/
-/** Modified by Martinski W. [2025-Oct-27] **/
+/** Modified by Martinski W. [2026-Mar-23] **/
 /**----------------------------------------**/
 function Draw_Bar_Chart(barLabels, barData, ChartName, charttype, colourtag)
 {
 	if (typeof barLabels === 'undefined' || barLabels === null || (Array.isArray(barLabels) && barLabels.length == 0))
 	{ Draw_Chart_NoData(ChartName); return; }
+
 	if (typeof barData === 'undefined' || barData === null || (Array.isArray(barData) && barData.length == 0))
 	{ Draw_Chart_NoData(ChartName); return; }
 
@@ -602,7 +610,7 @@ function Draw_Bar_Chart(barLabels, barData, ChartName, charttype, colourtag)
 		tooltips: {
 			callbacks: {
 				title: function (tooltipItem, data) { return data.labels[tooltipItem[0].index]; },
-				label: function (tooltipItem, data) { return comma(data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]); },
+				label: function (tooltipItem, data) { return data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]; },
 			},
 			mode: 'point',
 			position: 'cursor',
@@ -671,10 +679,12 @@ function Draw_Bar_Chart(barLabels, barData, ChartName, charttype, colourtag)
 function changeColour(elem, chartname, datasetname, cookiename)
 {
 	colour = elem.value * 1;
-	if ( colour == 0 ) {
+	if ( colour == 0 )
+	{
 		chartname.config.data.datasets[0].backgroundColor = poolColors(datasetname.length);
 	}
-	else {
+	else
+	{
 		chartname.config.data.datasets[0].backgroundColor = "rgba(2, 53, 135, 1)";
 	}
 	cookie.set(cookiename, colour, 31);
@@ -748,23 +758,28 @@ function changeLayout(elem, chartname, cookiename)
 
 function showGrid(e, axis)
 {
-	if (e == null) {
+	if (e === null)
+	{
 		return true;
 	}
-	else if (e == "pie") {
+	else if (e === "pie")
+	{
 		return false;
 	}
-	else {
+	else
+	{
 		return true;
 	}
 }
 
 function showAxis(e, axis)
 {
-	if (e == "bar" && axis == "x") {
+	if (e == "bar" && axis == "x")
+	{
 		return false;
 	}
-	else {
+	else
+	{
 		if (e == null) {
 			return true;
 		}
@@ -788,7 +803,8 @@ function getRandomColor()
 function poolColors(a)
 {
 	var pool = [];
-	for(i = 0; i < a; i++) {
+	for (i = 0; i < a; i++)
+	{
 		pool.push(getRandomColor());
 	}
 	return pool;
@@ -796,10 +812,12 @@ function poolColors(a)
 
 function getChartType(e)
 {
-	if (e == null) {
+	if (e === null)
+	{
 		return 'horizontalBar';
 	}
-	else {
+	else
+	{
 		return e;
 	}
 }
@@ -829,9 +847,10 @@ function getAvg(datasetname)
 {
 	var sum, avg = 0;
 	
-	if (datasetname.length) {
+	if (datasetname.length)
+	{
 		sum = datasetname.reduce(function(a, b) { return a*1 + b*1; });
-		avg = sum / datasetname.length;
+		avg = (sum / datasetname.length);
 	}
 	
 	return avg;
@@ -839,29 +858,33 @@ function getAvg(datasetname)
 
 function ZoomPanEnabled(charttype)
 {
-	if (charttype == "bar") {
+	if (charttype === "bar")
+	{
 		return 'y';
 	}
-	else if (charttype == "horizontalBar") {
+	else if (charttype === "horizontalBar")
+	{
 		return 'x';
 	}
 }
 
 function ZoomPanMax(charttype, axis, datasetname)
 {
-	if (axis == "x") {
-		if (charttype == "bar") {
+	if (axis === "x")
+	{
+		if (charttype === "bar") {
 			return null;
 		}
-		else if (charttype == "horizontalBar") {
+		else if (charttype === "horizontalBar") {
 			return getMax(datasetname);
 		}
 	}
-	else if (axis == "y") {
-		if (charttype == "bar") {
+	else if (axis === "y")
+	{
+		if (charttype === "bar") {
 			return getMax(datasetname);
 		}
-		else if (charttype == "horizontalBar") {
+		else if (charttype === "horizontalBar") {
 			return null;
 		}
 	}
