@@ -19,10 +19,10 @@
 ##                            than their equivalent Entware binaries [Martinski W.]
 ## - v1.6.1 - June 30 2025  - Miscellaneous code improvements [Martinski W.]
 ######################################################################################
-# Last Modified: 2025-Jun-30
+# Last Modified: 2025-Nov-04
 #-------------------------------------------------
 
-readonly SCRIPT_VERSION="v1.6.1"
+readonly SCRIPT_VERSION="v1.6.2"
 readonly SCRIPT_NAME="unbound_log.sh"
 
 # Give priority to built-in binaries #
@@ -46,7 +46,7 @@ TZ="$(cat /etc/TZ)"
 export TZ
 
 Say()
-{ echo -e "$@" | logger -st "${SCRIPT_NAME}_$$" ; }
+{ echo -e "$@" | logger -st "${SCRIPT_NAME}_[$$]" ; }
 
 ScriptHeader()
 {
