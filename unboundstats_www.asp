@@ -89,9 +89,42 @@ th.keystatsnumber {
 <script language="JavaScript" type="text/javascript" src="/ext/unbound_stats.sh/unboundrpzhits.js"></script>
 <script>
 
-/**----------------------------------------**/
-/** Modified by Martinski W. [2026-Mar-23] **/
-/**----------------------------------------**/
+/**----------------------------**/
+/** Last Modified: 2026-Mar-26 **/
+/**----------------------------**/
+
+/**-------------------------------------**/
+/** Added by Martinski W. [2026-Mar-26] **/
+/**-------------------------------------**/
+var custom_settings = <% get_custom_settings(); %>;
+
+function GetVersionNumber(versionType)
+{
+	var versionProp;
+	if (versionType === "local")
+	{
+		versionProp = custom_settings.unboundStats_VersLocal;
+	}
+	else if (versionType === "server")
+	{
+		versionProp = custom_settings.unboundStats_VersServer;
+	}
+	if (typeof versionProp == 'undefined' || versionProp == null)
+	{
+		return "N/A";
+	}
+	else
+	{
+		return versionProp;
+	}
+}
+
+function SetUnboundStatsVersionInfo()
+{
+	var localVersion = GetVersionNumber("local");
+	document.getElementById("unboundstatsversion").innerHTML =
+	         "Unbound_Stats WebUI " + localVersion + "\n";
+}
 
 // Keep the real data in a seperate object called allData
 // Put only that part of allData in the dataset to optimize zoom/pan performance
@@ -139,31 +172,32 @@ var datafilterPlugin = {
 	}
 }
 
-/* create and return new array padding missing days*/
+/* create and return new array padding missing days */
 function FillEmptyDates(startDay, endDay, data)
 {
   var strStart = startDay.getFullYear() + "-" + (startDay.getMonth()+1) + "-" + startDay.getDate();
   var momStart = moment(strStart, "YYYY-MM-DD");
   var strEnd = endDay.getFullYear() + "-" + (endDay.getMonth()+1) + "-" + endDay.getDate();
   var momEnd = moment(strEnd, "YYYY-MM-DD");
-  if (data.length > 0) // non-empty array
+  if (data.length > 0)
   {
-    // empty value at start date for visutals
+    // Empty value at 'start date' for visuals //
     var startDiff = dateDiff(momStart, data[0].x);
     if (startDiff >= 1)
     {
-      var fillData = { x: moment(momStart), y: 0 };
-      data.unshift(fillData);
+       var fillData = { x: moment(momStart), y: 0 };
+       data.unshift(fillData);
     }
-    // empty value at end date for visuals
+    // Empty value at 'end date' for visuals //
     var endDiff = dateDiff(data[data.length-1].x, momEnd);
     if (endDiff >= 1)
     {
-      var fillData = { x: moment(momEnd), y: 0 };
-      data.push(fillData);
+       var fillData = { x: moment(momEnd), y: 0 };
+       data.push(fillData);
     }
-  } else { // empty array
-
+  }
+  else  //Empty//
+  {
       var fillData = { x: moment(momStart), y: 0 };
       data.unshift(fillData);
       var fillData2 = { x: moment(momEnd), y: 0 };
@@ -171,15 +205,18 @@ function FillEmptyDates(startDay, endDay, data)
   }
   newData = [data[0]];
 
-  for (i = 1; i < data.length; i++) {
+  for (i = 1; i < data.length; i++)
+  {
     var diff = dateDiff(data[i - 1].x, data[i].x);
     var startDate = new Date(data[i - 1].x);
-    if (diff > 1) {
-      for (j = 0; j < diff - 1; j++) {
-        var fillDate = new Date(startDate);
-        fillDate.setDate(fillDate.getDate() + (j+1));
-        var fillData = { x: moment(fillDate), y: 0 };
-          newData.push(fillData);
+    if (diff > 1)
+    {
+      for (j = 0; j < diff - 1; j++)
+      {
+         var fillDate = new Date(startDate);
+         fillDate.setDate(fillDate.getDate() + (j+1));
+         var fillData = { x: moment(fillDate), y: 0 };
+         newData.push(fillData);
       }
     }
     newData.push(data[i]);
@@ -201,7 +238,8 @@ Chart.defaults.global.defaultFontColor = "#CCC";
 Chart.Tooltip.positioners.cursor = function(chartElements, coordinates) {
   return coordinates;
 };
-function Draw_Chart_NoData(txtchartname){
+function Draw_Chart_NoData(txtchartname)
+{
 	document.getElementById(txtchartname).width="730";
 	document.getElementById(txtchartname).height="300";
 	document.getElementById(txtchartname).style.width="730px";
@@ -221,14 +259,18 @@ function Draw_Chart(txtchartname,txttitle,txtunity,txtunitx,numunitx,colourname,
 	var objchartname=window["LineChart"+txtchartname];
 	var txtdataname="Data"+txtchartname;
 	var objdataname=window["Data"+txtchartname];
-	if (typeof objdataname === 'undefined' || objdataname === null) { Draw_Chart_NoData(txtchartname); return; }
-	if (objdataname.length == 0) { Draw_Chart_NoData(txtchartname); return; }
+
+	if (typeof objdataname === 'undefined' || objdataname === null || objdataname.length === 0)
+	{ Draw_Chart_NoData(txtchartname); return; }
+
 	factor=0;
-	if (txtunitx=="hour"){
-		factor=60*60*1000;
+	if (txtunitx === "hour")
+	{
+		factor = (60*60*1000);
 	}
-	else if (txtunitx=="day"){
-		factor=60*60*24*1000;
+	else if (txtunitx === "day")
+	{
+		factor = (60*60*24*1000);
 	}
 	if (objchartname != undefined) objchartname.destroy();
 	var ctx = document.getElementById(txtchartname).getContext("2d");
@@ -503,7 +545,7 @@ function SetCurrentPage()
 }
 
 /**----------------------------------------**/
-/** Modified by Martinski W. [2025-Oct-27] **/
+/** Modified by Martinski W. [2026-Mar-26] **/
 /**----------------------------------------**/
 function initial()
 {
@@ -517,6 +559,7 @@ function initial()
 	show_menu();
 	SetUnboundStats();
 	SetUnboundStatsTitle();
+	SetUnboundStatsVersionInfo();
 
 	// redraw the CPH and RPZ graphs //
 	var startDate = new Date();
@@ -924,7 +967,9 @@ function ZoomPanMax(charttype, axis, datasetname)
 <tr bgcolor="#4D595D">
 <td valign="top">
 <div style="line-height:10px;">&nbsp;</div>
-<div class="formfonttitle" id="unboundstatstitle">Unbound Statistics</div>
+<div class="formfonttitle" id="unboundstatsversion" style="text-align:center;">Unbound Stats WebUI Version</div>
+<div style="line-height:10px;"></div>
+<div class="formfonttitle" id="unboundstatstitle" style="text-align:center; font-size:14px;">Unbound Statistics</div>
 <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable" style="border:0px;">
 <tr class="apply_gen" valign="top" height="35px">
 <td style="background-color:rgb(77, 89, 93);border:0px;">
