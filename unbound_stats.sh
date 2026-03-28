@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2026-Mar-26
+# Last Modified: 2026-Mar-28
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -53,7 +53,7 @@
 ###################################################
 
 readonly SCRIPT_VERSION="v1.4.6"
-readonly SCRIPT_VERSTAG="26032623"
+readonly SCRIPT_VERSTAG="26032808"
 SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
@@ -1157,13 +1157,17 @@ Update_File()
 				rm -f "$SCRIPT_WEBPAGE_DIR/$MyWebPage" 2>/dev/null
 				Download_File "$SCRIPT_REPO/$1" "$SCRIPT_DIR/$1" && \
 				Print_Output true "New version of $1 downloaded" "$PASS"
-				[ $# -gt 1 ] && [ -n "$2" ] && Mount_WebUI
+				if [ $# -gt 1 ] && [ -n "$2" ]
+				then Mount_WebUI
+				fi
 			fi
 			rm -f "$tmpFile"
 		else
 			Download_File "$SCRIPT_REPO/$1" "$SCRIPT_DIR/$1" && \
 			Print_Output true "New version of $1 downloaded" "$PASS"
-			[ $# -gt 1 ] && [ -n "$2" ] && Mount_WebUI
+			if [ $# -gt 1 ] && [ -n "$2" ]
+			then Mount_WebUI
+			fi
 		fi
 	elif [ "$1" = "$LOG_SCRIPT_NAME_LOWER" ]
 	then
@@ -1176,14 +1180,18 @@ Update_File()
 				Download_File "$SCRIPT_REPO/$1" "$SCRIPT_DIR/$1" && \
 				chmod 0755 "$SCRIPT_DIR/$1" 2>/dev/null
 				Print_Output true "New version of $1 downloaded" "$PASS"
-				[ $# -gt 1 ] && [ -n "$2" ] && sh "$SCRIPT_DIR/$1"
+				if [ $# -eq 2 ] && [ -n "$2" ]
+				then sh "$SCRIPT_DIR/$1"
+				fi
 			fi
 			rm -f "$tmpFile"
 		else
 			Download_File "$SCRIPT_REPO/$1" "$SCRIPT_DIR/$1" && \
 			chmod 0755 "$SCRIPT_DIR/$1" 2>/dev/null
 			Print_Output true "New version of $1 downloaded" "$PASS"
-			[ $# -gt 1 ] && [ -n "$2" ] && sh "$SCRIPT_DIR/$1"
+			if [ $# -eq 2 ] && [ -n "$2" ]
+			then sh "$SCRIPT_DIR/$1"
+			fi
 		fi
 	elif [ "$1" = "emptystats" ]
 	then
@@ -1252,7 +1260,7 @@ Update_Check()
 }
 
 ##----------------------------------------##
-## Modified by Martinski W. [2026-Feb-18] ##
+## Modified by Martinski W. [2026-Mar-28] ##
 ##----------------------------------------##
 Update_Version()
 {
@@ -1292,16 +1300,21 @@ Update_Version()
 					Print_Output true "$SCRIPT_NAME was successfully updated" "$PASS"
 					chmod 0755 "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" 2>/dev/null
 					Set_Version_Custom_Settings local "$serverVer"
+					Clear_Lock
+					PressEnter
+					exec "$0"
 					exit 0
 				;;
 				*)
 					printf "\n"
+					Clear_Lock
 					return 1
 				;;
 			esac
 		else
 			Set_Version_Custom_Settings local "$localVer"
 			Print_Output true "No updates available. Latest version installed: ${GRNct}${localVer}${CLRct}" "$INFO"
+			Clear_Lock
 			return 1
 		fi
 	fi
@@ -1313,11 +1326,12 @@ Update_Version()
 		Update_File emptystats
 		Update_File shared-jy.tar.gz
 		Update_File unboundstats_www.asp force
-		Update_File "$LOG_SCRIPT_NAME_LOWER" force
+		Update_File "$LOG_SCRIPT_NAME_LOWER" "$@"
 		Download_File "$SCRIPT_REPO/$SCRIPT_NAME_LOWER" "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" && \
 		Print_Output true "$SCRIPT_NAME was successfully updated" "$PASS"
 		chmod 0755 "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" 2>/dev/null
 		Set_Version_Custom_Settings local "$serverVer"
+		Clear_Lock
 		if [ $# -lt 2 ] || [ -z "$2" ]
 		then
 			PressEnter
@@ -1340,7 +1354,7 @@ ScriptUpdateFromAMTM()
     if [ $# -gt 0 ] && [ "$1" = "check" ]
     then return 0
     fi
-    Update_Version force unattended
+    Update_Version force amtmupdate
     return "$?"
 }
 
@@ -1675,8 +1689,7 @@ fi
 ##----------------------------------------##
 ## Modified by Martinski W. [2026-Feb-18] ##
 ##----------------------------------------##
-if [ $# -lt 2 ] || \
-   { [ "$1" != "amtmupdate" ] && [ "$2" != "check" ] ; }
+if [ $# -lt 2 ] && [ "$1" != "amtmupdate" ]
 then
     ScriptHeader "$1"
 fi
