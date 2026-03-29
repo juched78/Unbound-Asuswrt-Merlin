@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2026-Mar-23
+# Last Modified: 2026-Mar-28
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -52,9 +52,9 @@
 # shellcheck disable=SC3045
 ###################################################
 
-readonly SCRIPT_VERSION="v1.4.5"
-readonly SCRIPT_VERSTAG="26032300"
-SCRIPT_BRANCH="master"
+readonly SCRIPT_VERSION="v1.4.6"
+readonly SCRIPT_VERSTAG="26032808"
+SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
 #define www script names#
@@ -90,6 +90,7 @@ readonly ENDIN_MenuAddOnsTag="/\*\*ENDIN:_AddOns_\*\*/"
 readonly branchxStr_TAG="[Branch: $SCRIPT_BRANCH]"
 readonly versionDev_TAG="${SCRIPT_VERSION}_${SCRIPT_VERSTAG}"
 readonly SHARE_TEMP_DIR="/opt/share/tmp"
+readonly customSettingsFILE="/jffs/addons/custom_settings.txt"
 
 # To support automatic script updates from AMTM #
 doScriptUpdateFromAMTM=true
@@ -509,7 +510,7 @@ Generate_UnboundStats()
 	#create JS file to be loaded by web page#
 	WriteStats_ToJS "$statsFile" "$statsFileJS" "SetUnboundStats" "unboundstats"
 
-	echo "Unbound Stats generated on $(date +'%c')" > "$statsTitleFile"
+	echo "Data generated on $(date +'%c')" > "$statsTitleFile"
 	WriteStats_ToJS "$statsTitleFile" "$statsTitleFileJS" "SetUnboundStatsTitle" "unboundstatstitle"
 
 	#use SQLite to track % for graph#
@@ -927,7 +928,7 @@ Mount_WebUI()
 	then
 		Print_Output true "**ERROR**: Unable to mount $SCRIPT_NAME WebUI page." "$CRIT"
 		flock -u "$FD"		
-		exit 1
+		return 1
 	fi
 	cp -fp "$SCRIPT_DIR/unboundstats_www.asp" "$SCRIPT_WEBPAGE_DIR/$MyWebPage"
 
@@ -1033,7 +1034,7 @@ Unmount_WebUI()
 	then
 		sed -i "\\~$MyWebPage~d" "$TEMP_MENU_TREE"
 		rm -f "$SCRIPT_WEBPAGE_DIR/$MyWebPage"
-		rm -rf "$SCRIPT_WEB_DIR" 2>/dev/null
+		rm -fr "$SCRIPT_WEB_DIR" 2>/dev/null
 		_FindandRemoveMenuAddOnsSection_
 		umount /www/require/modules/menuTree.js
 		mount -o bind "$TEMP_MENU_TREE" /www/require/modules/menuTree.js
@@ -1088,6 +1089,47 @@ EOF
 	echo
 }
 
+##-------------------------------------##
+## Added by Martinski W. [2026-Mar-26] ##
+##-------------------------------------##
+Set_Version_Custom_Settings()
+{
+	case "$1" in
+		local)
+			if [ -f "$customSettingsFILE" ]
+			then
+				if [ "$(grep -c "^unboundStats_VersLocal" "$customSettingsFILE")" -gt 0 ]
+				then
+					if [ "$2" != "$(grep "^unboundStats_VersLocal" "$customSettingsFILE" | cut -d' ' -f2)" ]
+					then
+						sed -i "s/^unboundStats_VersLocal.*/unboundStats_VersLocal $2/" "$customSettingsFILE"
+					fi
+				else
+					echo "unboundStats_VersLocal $2" >> "$customSettingsFILE"
+				fi
+			else
+				echo "unboundStats_VersLocal $2" >> "$customSettingsFILE"
+			fi
+		;;
+		server)
+			if [ -f "$customSettingsFILE" ]
+			then
+				if [ "$(grep -c "^unboundStats_VersServer" "$customSettingsFILE")" -gt 0 ]
+				then
+					if [ "$2" != "$(grep "^unboundStats_VersServer" "$customSettingsFILE" | cut -d' ' -f2)" ]
+					then
+						sed -i "s/^unboundStats_VersServer.*/unboundStats_VersServer $2/" "$customSettingsFILE"
+					fi
+				else
+					echo "unboundStats_VersServer $2" >> "$customSettingsFILE"
+				fi
+			else
+				echo "unboundStats_VersServer $2" >> "$customSettingsFILE"
+			fi
+		;;
+	esac
+}
+
 ##----------------------------------------##
 ## Modified by Martinski W. [2025-Jun-13] ##
 ##----------------------------------------##
@@ -1115,13 +1157,17 @@ Update_File()
 				rm -f "$SCRIPT_WEBPAGE_DIR/$MyWebPage" 2>/dev/null
 				Download_File "$SCRIPT_REPO/$1" "$SCRIPT_DIR/$1" && \
 				Print_Output true "New version of $1 downloaded" "$PASS"
-				[ $# -gt 1 ] && [ -n "$2" ] && Mount_WebUI
+				if [ $# -gt 1 ] && [ -n "$2" ]
+				then Mount_WebUI
+				fi
 			fi
 			rm -f "$tmpFile"
 		else
 			Download_File "$SCRIPT_REPO/$1" "$SCRIPT_DIR/$1" && \
 			Print_Output true "New version of $1 downloaded" "$PASS"
-			[ $# -gt 1 ] && [ -n "$2" ] && Mount_WebUI
+			if [ $# -gt 1 ] && [ -n "$2" ]
+			then Mount_WebUI
+			fi
 		fi
 	elif [ "$1" = "$LOG_SCRIPT_NAME_LOWER" ]
 	then
@@ -1134,14 +1180,18 @@ Update_File()
 				Download_File "$SCRIPT_REPO/$1" "$SCRIPT_DIR/$1" && \
 				chmod 0755 "$SCRIPT_DIR/$1" 2>/dev/null
 				Print_Output true "New version of $1 downloaded" "$PASS"
-				[ $# -gt 1 ] && [ -n "$2" ] && sh "$SCRIPT_DIR/$1"
+				if [ $# -eq 2 ] && [ -n "$2" ]
+				then sh "$SCRIPT_DIR/$1"
+				fi
 			fi
 			rm -f "$tmpFile"
 		else
 			Download_File "$SCRIPT_REPO/$1" "$SCRIPT_DIR/$1" && \
 			chmod 0755 "$SCRIPT_DIR/$1" 2>/dev/null
 			Print_Output true "New version of $1 downloaded" "$PASS"
-			[ $# -gt 1 ] && [ -n "$2" ] && sh "$SCRIPT_DIR/$1"
+			if [ $# -eq 2 ] && [ -n "$2" ]
+			then sh "$SCRIPT_DIR/$1"
+			fi
 		fi
 	elif [ "$1" = "emptystats" ]
 	then
@@ -1193,6 +1243,8 @@ Update_Check()
 	doUpdate="false"
 	localVer="$(grep "SCRIPT_VERSION=" "${SCRIPT_DIR}/$SCRIPT_NAME_LOWER" | grep -m1 -oE "$scriptVersRegExp")"
 	serverVer="$(curl -fsL --retry 4 --retry-delay 5 "$SCRIPT_REPO/$SCRIPT_NAME_LOWER" | grep "SCRIPT_VERSION=" | grep -m1 -oE "$scriptVersRegExp")"
+	[ -n "$localVer" ] && Set_Version_Custom_Settings local "$localVer"
+
 	if [ "$localVer" != "$serverVer" ]
 	then
 		doUpdate="version"
@@ -1208,7 +1260,7 @@ Update_Check()
 }
 
 ##----------------------------------------##
-## Modified by Martinski W. [2026-Feb-18] ##
+## Modified by Martinski W. [2026-Mar-28] ##
 ##----------------------------------------##
 Update_Version()
 {
@@ -1247,15 +1299,22 @@ Update_Version()
 					Download_File "$SCRIPT_REPO/$SCRIPT_NAME_LOWER" "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" && \
 					Print_Output true "$SCRIPT_NAME was successfully updated" "$PASS"
 					chmod 0755 "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" 2>/dev/null
+					Set_Version_Custom_Settings local "$serverVer"
+					Clear_Lock
+					PressEnter
+					exec "$0"
 					exit 0
 				;;
 				*)
 					printf "\n"
+					Clear_Lock
 					return 1
 				;;
 			esac
 		else
+			Set_Version_Custom_Settings local "$localVer"
 			Print_Output true "No updates available. Latest version installed: ${GRNct}${localVer}${CLRct}" "$INFO"
+			Clear_Lock
 			return 1
 		fi
 	fi
@@ -1267,10 +1326,12 @@ Update_Version()
 		Update_File emptystats
 		Update_File shared-jy.tar.gz
 		Update_File unboundstats_www.asp force
-		Update_File "$LOG_SCRIPT_NAME_LOWER" force
+		Update_File "$LOG_SCRIPT_NAME_LOWER" "$@"
 		Download_File "$SCRIPT_REPO/$SCRIPT_NAME_LOWER" "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" && \
 		Print_Output true "$SCRIPT_NAME was successfully updated" "$PASS"
 		chmod 0755 "$SCRIPT_DIR/$SCRIPT_NAME_LOWER" 2>/dev/null
+		Set_Version_Custom_Settings local "$serverVer"
+		Clear_Lock
 		if [ $# -lt 2 ] || [ -z "$2" ]
 		then
 			PressEnter
@@ -1293,14 +1354,49 @@ ScriptUpdateFromAMTM()
     if [ $# -gt 0 ] && [ "$1" = "check" ]
     then return 0
     fi
-    Update_Version force unattended
+    Update_Version force amtmupdate
     return "$?"
+}
+
+##-------------------------------------##
+## Added by Martinski W. [2026-Mar-26] ##
+##-------------------------------------##
+NTP_Ready()
+{
+	local theSleepDelay=15  ntpMaxWaitSecs=600  ntpWaitSecs
+
+	if [ "$(nvram get ntp_ready)" -eq 0 ]
+	then
+		Check_Lock
+		ntpWaitSecs=0
+		Print_Output true "Waiting for NTP to sync..." "$WARN"
+
+		while [ "$(nvram get ntp_ready)" -eq 0 ] && [ "$ntpWaitSecs" -lt "$ntpMaxWaitSecs" ]
+		do
+			if [ "$ntpWaitSecs" -gt 0 ] && [ "$((ntpWaitSecs % 30))" -eq 0 ]
+			then
+			    Print_Output true "Waiting for NTP to sync [$ntpWaitSecs secs]..." "$WARN"
+			fi
+			sleep "$theSleepDelay"
+			ntpWaitSecs="$((ntpWaitSecs + theSleepDelay))"
+		done
+
+		if [ "$ntpWaitSecs" -ge "$ntpMaxWaitSecs" ]
+		then
+			Print_Output true "NTP failed to sync after 10 minutes. Please resolve!" "$CRIT"
+			Clear_Lock
+			exit 1
+		else
+			Print_Output true "NTP has synced [$ntpWaitSecs secs]. $SCRIPT_NAME will now continue." "$PASS"
+			Clear_Lock
+		fi
+	fi
 }
 
 ##----------------------------------------##
 ## Modified by Martinski W. [2025-Oct-27] ##
 ##----------------------------------------##
-Check_Dependencies()
+Check_Requirements()
 {
 	local REQS_CHECK_FAILED=false  logOpt=false
 
@@ -1333,7 +1429,8 @@ Check_Dependencies()
 	fi
 
 	if "$REQS_CHECK_FAILED"
-	then return 1 ; fi
+	then return 1
+	fi
 
 	# Install SQLite if not found #
 	if [ ! -f /opt/bin/sqlite3 ]
@@ -1386,6 +1483,98 @@ Wait_For_Unbound()
 	return 1
 }
 
+##-------------------------------------##
+## Added by Martinski W. [2026-Mar-26] ##
+##-------------------------------------##
+MainMenu()
+{
+	printf "${BOLD}############################################################${CLRct}\n\n"
+	printf " WebUI for %s is available at:\n ${INFO}%s${CLRct}\n\n" "$SCRIPT_NAME" "$(Get_WebUI_URL)"
+
+	printf "   ${GRNct}u${CLRct}. Check for new version updates\n"
+	printf "  ${GRNct}uf${CLRct}. Force update %s with latest version\n\n" "$SCRIPT_NAME"
+	printf "   ${GRNct}e${CLRct}. Exit %s\n\n" "$SCRIPT_NAME"
+	printf "   ${GRNct}z${CLRct}. Uninstall %s\n" "$SCRIPT_NAME"
+	printf "\n"
+	printf "${BOLD}############################################################${CLRct}\n\n"
+
+	while true
+	do
+		printf " Choose an option:  "
+		read -r menuOption
+		case "$menuOption" in
+			u)
+				printf "\n"
+				if Check_Lock menu
+				then
+					Update_Version check
+					Clear_Lock
+				fi
+				PressEnter
+				break
+			;;
+			uf)
+				printf "\n"
+				if Check_Lock menu
+				then
+					Update_Version force
+					Clear_Lock
+				fi
+				PressEnter
+				break
+			;;
+			e)
+				ScriptHeader
+				printf "\n${BOLD}Thanks for using %s!${CLRct}\n\n\n" "$SCRIPT_NAME"
+				exit 0
+			;;
+			z)
+				while true
+				do
+					printf "\n${BOLD}Are you sure you want to uninstall %s? (y/n)${CLRct}  " "$SCRIPT_NAME"
+					read -r confirm
+					case "$confirm" in
+						y|Y)
+							AddOn_Uninstall
+							exit 0
+						;;
+						*)
+							break
+						;;
+					esac
+				done
+				break
+			;;
+			*)
+				[ -n "$menuOption" ] && \
+				printf "\n${ERR}INVALID input [$menuOption]${CLRct}"
+				printf "\nPlease choose a valid option.\n\n"
+				PressEnter
+				break
+			;;
+		esac
+	done
+
+	ScriptHeader
+	MainMenu
+}
+
+##-------------------------------------##
+## Added by Martinski W. [2026-Mar-26] ##
+##-------------------------------------##
+AddOn_Uninstall()
+{
+	Auto_Startup delete
+	Auto_ServiceEvent delete
+	Auto_Cron delete
+	Unmount_WebUI
+	rm -f "$installedMD5File"
+	rm -f "$ubDBASE_Stats" "$ubDBASE_Logs"
+	sed -i '/unboundStats_VersLocal/d' "$customSettingsFILE"
+	sed -i '/unboundStats_VersServer/d' "$customSettingsFILE"
+	Print_Output false "Uninstallation was completed." "$INFO"
+}
+
 ##----------------------------------------##
 ## Modified by Martinski W. [2025-Jun-28] ##
 ##----------------------------------------##
@@ -1394,7 +1583,7 @@ AddOn_Install()
 	Create_Dirs
 	Create_Symlinks
 
-	if ! Check_Dependencies install
+	if ! Check_Requirements install
 	then
 		Print_Output false "Requirements for $SCRIPT_NAME not met, please see above for the reason(s)" "$CRIT"
 		PressEnter ; echo
@@ -1409,8 +1598,10 @@ AddOn_Install()
 	Auto_ServiceEvent create
 	Auto_Cron create
 	Mount_WebUI
+	Set_Version_Custom_Settings local "$SCRIPT_VERSION"
 	sh "$SCRIPT_DIR/$LOG_SCRIPT_NAME_LOWER"
 	Generate_UnboundStats
+	Clear_Lock
 }
 
 ##----------------------------------------##
@@ -1433,17 +1624,22 @@ AddOn_Startup()
 		fi
 	fi
 
+	NTP_Ready
+	Check_Lock
 	Create_Dirs
 	Create_Symlinks
-	if ! Check_Dependencies startup
-	then return 1
+	if ! Check_Requirements startup
+	then
+		Clear_Lock
+		return 1
 	fi
 	Auto_Startup create
 	Auto_ServiceEvent create
 	Auto_Cron create
 	Mount_WebUI
-	Check_Lock
+	Set_Version_Custom_Settings local "$SCRIPT_VERSION"
 	Wait_For_Unbound
+	[ "$1" != "force" ] && \
 	Generate_UnboundStats
 	Clear_Lock
 }
@@ -1464,30 +1660,43 @@ else SCRIPT_VERS_INFO="[$versionDev_TAG]"
 fi
 
 ##----------------------------------------##
-## Modified by Martinski W. [2025-Oct-27] ##
+## Modified by Martinski W. [2026-Mar-26] ##
 ##----------------------------------------##
 if [ $# -eq 0 ] || [ -z "$1" ]
 then
-	ScriptHeader
-	if Check_Dependencies
-	then _CheckFor_WebGUI_Page_
+	NTP_Ready
+	if ! Check_Requirements
+	then
+		Print_Output false "Requirements for $SCRIPT_NAME not met, please see above for the reason(s)" "$CRIT"
+		PressEnter
+		printf "\n${ERR}Exiting...${CLRct}\n\n"
+		Clear_Lock
+		exit 1
 	fi
-	printf "WebUI for %s is available at:\n${INFO}%s${CLRct}\n\n" "$SCRIPT_NAME" "$(Get_WebUI_URL)"
-	Show_Help
+
+	Create_Dirs
+	Create_Symlinks
+	Auto_Startup create
+	Auto_ServiceEvent create
+	Auto_Cron create
+	_CheckFor_WebGUI_Page_
+	Set_Version_Custom_Settings local "$SCRIPT_VERSION"
+	ScriptHeader
+	MainMenu
 	exit 0
 fi
 
 ##----------------------------------------##
 ## Modified by Martinski W. [2026-Feb-18] ##
 ##----------------------------------------##
-if [ $# -lt 2 ] || \
-   { [ "$1" != "amtmupdate" ] && [ "$2" != "check" ] ; }
+if [ $# -lt 2 ] && [ "$1" != "amtmupdate" ]
 then
     ScriptHeader "$1"
 fi
 
 case "$1" in
 	install)
+		Check_Lock
 		AddOn_Install
 		exit 0
 	;;
@@ -1531,14 +1740,7 @@ case "$1" in
 		exit 0
 	;;
 	uninstall)
-		Auto_Startup delete
-		Auto_ServiceEvent delete
-		Auto_Cron delete
-		Unmount_WebUI
-		[ -f "$installedMD5File" ] && rm -f "$installedMD5File"
-		[ -f "$ubDBASE_Stats" ] &&  rm -f "$ubDBASE_Stats"
-		[ -f "$ubDBASE_Logs" ] &&  rm -f "$ubDBASE_Logs"
-		Print_Output false "Uninstallation was completed." "$INFO"
+		AddOn_Uninstall
 		exit 0
 	;;
 	help)
