@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2026-Mar-28
+# Last Modified: 2026-Apr-11
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -52,9 +52,9 @@
 # shellcheck disable=SC3045
 ###################################################
 
-readonly SCRIPT_VERSION="v1.4.6"
-readonly SCRIPT_VERSTAG="26032808"
-SCRIPT_BRANCH="master"
+readonly SCRIPT_VERSION="v1.4.7"
+readonly SCRIPT_VERSTAG="26041104"
+SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
 #define www script names#
@@ -105,6 +105,9 @@ readonly INFO="${BOLD}\e[36m"
 readonly REDct="\e[1;31m"
 readonly GRNct="\e[1;32m"
 readonly MGNTct="\e[1;35m"
+
+# Workaround for Entware ELF binaries compiled with RUNPATH #
+unset LD_LIBRARY_PATH
 
 # Give priority to built-in binaries #
 export PATH="/bin:/usr/bin:/sbin:/usr/sbin:$PATH"
