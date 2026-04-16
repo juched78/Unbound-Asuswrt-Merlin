@@ -37,7 +37,7 @@
 ##           June 14 2025 - Added "help" parameter to show list of available commands [Martinski W.]
 ##            Aug 11 2025 - Added error checking and handling plus various code improvements.
 #########################################################################################################
-# Last Modified: 2026-Apr-11
+# Last Modified: 2026-Apr-15
 #-------------------------------------------------
 
 ############## Shellcheck Directives ##############
@@ -52,8 +52,8 @@
 # shellcheck disable=SC3045
 ###################################################
 
-readonly SCRIPT_VERSION="v1.4.7"
-readonly SCRIPT_VERSTAG="26041104"
+readonly SCRIPT_VERSION="v1.4.8"
+readonly SCRIPT_VERSTAG="26041500"
 SCRIPT_BRANCH="develop"
 SCRIPT_REPO="https://raw.githubusercontent.com/juched78/Unbound-Asuswrt-Merlin/$SCRIPT_BRANCH"
 
@@ -626,7 +626,7 @@ Auto_Startup()
 	local theScriptFilePath="$SCRIPT_DIR/$SCRIPT_NAME_LOWER"
 	case $1 in
 		create)
-			if [ -f /jffs/scripts/post-mount ]
+			if [ -s /jffs/scripts/post-mount ]
 			then
 				STARTUPLINECOUNT="$(grep -c '# '"$SCRIPT_NAME" /jffs/scripts/post-mount)"
 				STARTUPLINECOUNTEX="$(grep -cx '\[ -x "${1}/entware/bin/opkg" \] && \[ -x '"$theScriptFilePath"' \] && '"$theScriptFilePath"' startup "$@" & # '"$SCRIPT_NAME" /jffs/scripts/post-mount)"
@@ -648,14 +648,15 @@ Auto_Startup()
 				   echo '[ -x "${1}/entware/bin/opkg" ] && [ -x '"$theScriptFilePath"' ] && '"$theScriptFilePath"' startup "$@" & # '"$SCRIPT_NAME"
 				   echo
 				} > /jffs/scripts/post-mount
-				chmod 0755 /jffs/scripts/post-mount
 			fi
+			chmod 0755 /jffs/scripts/post-mount
 		;;
 		delete)
-			if [ -f /jffs/scripts/post-mount ]
+			if [ -s /jffs/scripts/post-mount ]
 			then
 				STARTUPLINECOUNT="$(grep -c '# '"$SCRIPT_NAME" /jffs/scripts/post-mount)"
-				if [ "$STARTUPLINECOUNT" -gt 0 ]; then
+				if [ "$STARTUPLINECOUNT" -gt 0 ]
+				then
 					sed -i -e '/# '"$SCRIPT_NAME"'/d' /jffs/scripts/post-mount
 				fi
 			fi
@@ -671,7 +672,7 @@ Auto_ServiceEvent()
 	local theScriptFilePath="$SCRIPT_DIR/$SCRIPT_NAME_LOWER"
 	case $1 in
 		create)
-			if [ -f /jffs/scripts/service-event ]
+			if [ -s /jffs/scripts/service-event ]
 			then
 				STARTUPLINECOUNT="$(grep -c '# '"$SCRIPT_NAME" /jffs/scripts/service-event)"
 				STARTUPLINECOUNTEX="$(grep -cx 'if echo "$2" | /bin/grep -q "'"$SCRIPT_NAME_LOWER"'"; then { '"$theScriptFilePath"' service_event "$@" & }; fi # '"$SCRIPT_NAME" /jffs/scripts/service-event)"
@@ -692,14 +693,15 @@ Auto_ServiceEvent()
 				   echo 'if echo "$2" | /bin/grep -q "'"$SCRIPT_NAME_LOWER"'"; then { '"$theScriptFilePath"' service_event "$@" & }; fi # '"$SCRIPT_NAME"
 				   echo
 				} > /jffs/scripts/service-event
-				chmod 0755 /jffs/scripts/service-event
 			fi
+			chmod 0755 /jffs/scripts/service-event
 		;;
 		delete)
-			if [ -f /jffs/scripts/service-event ]
+			if [ -s /jffs/scripts/service-event ]
 			then
 				STARTUPLINECOUNT="$(grep -c '# '"$SCRIPT_NAME" /jffs/scripts/service-event)"
-				if [ "$STARTUPLINECOUNT" -gt 0 ]; then
+				if [ "$STARTUPLINECOUNT" -gt 0 ]
+				then
 					sed -i -e '/# '"$SCRIPT_NAME"'/d' /jffs/scripts/service-event
 				fi
 			fi
@@ -712,23 +714,27 @@ Auto_Cron()
 	case $1 in
 		create)
 			STARTUPLINECOUNT="$(cru l | grep -c "$SCRIPT_NAME")"
-			if [ "$STARTUPLINECOUNT" -eq 0 ]; then
+			if [ "$STARTUPLINECOUNT" -eq 0 ]
+			then
 				cru a "$SCRIPT_NAME" "59 * * * * $SCRIPT_DIR/$SCRIPT_NAME_LOWER generate"
 			fi
 
 			STARTUPLINECOUNT="$(cru l | grep -c "$LOG_SCRIPT_NAME")"
-			if [ "$STARTUPLINECOUNT" -eq 0 ]; then
+			if [ "$STARTUPLINECOUNT" -eq 0 ]
+			then
 				cru a "$LOG_SCRIPT_NAME" "57 * * * * $SCRIPT_DIR/$LOG_SCRIPT_NAME_LOWER"
 			fi
 		;;
 		delete)
 			STARTUPLINECOUNT="$(cru l | grep -c "$SCRIPT_NAME")"
-			if [ "$STARTUPLINECOUNT" -gt 0 ]; then
+			if [ "$STARTUPLINECOUNT" -gt 0 ]
+			then
 				cru d "$SCRIPT_NAME"
 			fi
 
 			STARTUPLINECOUNT="$(cru l | grep -c "$LOG_SCRIPT_NAME")"
-			if [ "$STARTUPLINECOUNT" -gt 0 ]; then
+			if [ "$STARTUPLINECOUNT" -gt 0 ]
+			then
 				cru d "$LOG_SCRIPT_NAME"
 			fi
 		;;
